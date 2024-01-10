@@ -1,17 +1,27 @@
-name: Format
-
-on:
-  pull-request:
-    branches: [ master ]
-
+on: [push]
 jobs:
-
-  formatting:
+  spotless:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 # v2 minimum required
-      - uses: axel-op/googlejavaformat-action@v3
+      - uses: actions/checkout@v4
         with:
-          args: "--skip-sorting-imports --replace"
-          # Recommended if you use MacOS:
-          # github-token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+      - run: ./gradlew spotlessCheck
+
+on: [pull_request]
+jobs:
+  spotless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+      - run: ./gradlew spotlessApply

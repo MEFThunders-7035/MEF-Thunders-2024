@@ -1,5 +1,5 @@
 ## Make sure to format before build
 ```
-./gradlew :spotlessApply
+./gradlew spotlessApply
 ./gradlew build
 ```

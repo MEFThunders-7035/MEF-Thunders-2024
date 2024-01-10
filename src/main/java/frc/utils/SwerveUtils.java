@@ -1,7 +1,4 @@
-/**
- * DIRECTLY COPIED FROM REV ROBOTICS EXAMPLE CODE
- * https://github.com/REVrobotics/MAXSwerve-Java-Template/blob/main/src/main/java/frc/utils/SwerveUtils.java
- */
+/* (C)2024 */
 package frc.utils;
 
 public class SwerveUtils {

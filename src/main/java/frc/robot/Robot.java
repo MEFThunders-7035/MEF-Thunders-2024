@@ -10,7 +10,8 @@ public class Robot extends TimedRobot {
     private RobotContainer m_robotContainer;
 
     @Override
-    public void robotInit() {
+    public void robotInit()
+	{
         m_robotContainer = new RobotContainer();
     }
 

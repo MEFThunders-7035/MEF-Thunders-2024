@@ -119,4 +119,13 @@ public final class Constants {
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps
   }
+
+    public static final class OIConstants {
+        public static double kDriveDeadband = 0.05;
+    }
+
+    public static final class AutoConstants {
+        public static final double kMaxSpeedMetersPerSecond = 3;
+        public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    }
 }

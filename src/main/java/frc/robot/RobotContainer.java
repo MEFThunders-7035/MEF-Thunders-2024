@@ -18,44 +18,47 @@ import frc.robot.subsystems.DriveSubsystem;
 import java.util.List;
 
 public class RobotContainer {
-    private final DriveSubsystem driveSubsystem = new DriveSubsystem();
-    private final XboxController controller = new XboxController(0);
+  private final DriveSubsystem driveSubsystem = new DriveSubsystem();
+  private final XboxController controller = new XboxController(0);
 
-    public RobotContainer() {
-        configureBindings();
-        driveSubsystem.setDefaultCommand(
-                new RunCommand(
-                        () ->
-                                driveSubsystem.drive(
-                                        MathUtil.applyDeadband(controller.getLeftY(), OIConstants.kDriveDeadband),
-                                        MathUtil.applyDeadband(controller.getLeftY(), OIConstants.kDriveDeadband),
-                                        MathUtil.applyDeadband(controller.getRightX(), OIConstants.kDriveDeadband),
-                                        true,
-                                        true),
-                        driveSubsystem));
-    }
+  public RobotContainer() {
+    configureBindings();
+    driveSubsystem.setDefaultCommand(
+        new RunCommand(
+            () ->
+                driveSubsystem.drive(
+                    -MathUtil.applyDeadband(
+                        controller.getLeftY() * 0.5, OIConstants.kDriveDeadband),
+                    -MathUtil.applyDeadband(
+                        controller.getLeftX() * 0.5, OIConstants.kDriveDeadband),
+                    -MathUtil.applyDeadband(
+                        controller.getRightX() * 0.5, OIConstants.kDriveDeadband),
+                    true,
+                    true),
+            driveSubsystem));
+  }
 
-    private void configureBindings() {}
+  private void configureBindings() {}
 
-    public Command getAutonomousCommand() {
-        TrajectoryConfig config =
-                new TrajectoryConfig(
-                                AutoConstants.kMaxSpeedMetersPerSecond,
-                                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-                        // Add kinematics to ensure max speed is actually obeyed
-                        .setKinematics(SwerveModuleConstants.kDriveKinematics);
+  public Command getAutonomousCommand() {
+    TrajectoryConfig config =
+        new TrajectoryConfig(
+                AutoConstants.kMaxSpeedMetersPerSecond,
+                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            // Add kinematics to ensure max speed is actually obeyed
+            .setKinematics(SwerveModuleConstants.kDriveKinematics);
 
-        // An example trajectory to follow. All units in meters.
-        Trajectory exampleTrajectory =
-                TrajectoryGenerator.generateTrajectory(
-                        // Start at the origin facing the +X direction
-                        new Pose2d(0, 0, new Rotation2d(0)),
-                        // Pass through these two interior waypoints, making an 's' curve path
-                        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-                        // End 3 meters straight ahead of where we started, facing forward
-                        new Pose2d(3, 0, new Rotation2d(0)),
-                        config);
+    // An example trajectory to follow. All units in meters.
+    Trajectory exampleTrajectory =
+        TrajectoryGenerator.generateTrajectory(
+            // Start at the origin facing the +X direction
+            new Pose2d(0, 0, new Rotation2d(0)),
+            // Pass through these two interior waypoints, making an 's' curve path
+            List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+            // End 3 meters straight ahead of where we started, facing forward
+            new Pose2d(3, 0, new Rotation2d(0)),
+            config);
 
-        return Commands.print("No autonomous command configured");
-    }
+    return Commands.print("No autonomous command configured");
+  }
 }

@@ -16,6 +16,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -26,6 +27,7 @@ public class RobotContainer {
 
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final ArmSubsystem armSubsystem = new ArmSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
@@ -36,8 +38,8 @@ public class RobotContainer {
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
 
-    intakeSubsystem.setDefaultCommand(
-        new RunCommand(() -> intakeSubsystem.setArmToAprilTag(), intakeSubsystem));
+    armSubsystem.setDefaultCommand(
+        new RunCommand(() -> armSubsystem.setArmToAprilTag(), armSubsystem));
   }
 
   private void configureBindings() {

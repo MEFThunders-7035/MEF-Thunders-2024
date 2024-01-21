@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -8,37 +7,56 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
-import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import java.util.List;
 
 public class RobotContainer {
-  private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final XboxController controller = new XboxController(0);
+
+  private final DriveSubsystem driveSubsystem = new DriveSubsystem();
+  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
     configureBindings();
-    driveSubsystem.setDefaultCommand(
-        new RunCommand(
-            () ->
-                driveSubsystem.drive(
-                    -MathUtil.applyDeadband(
-                        controller.getLeftY() * 0.5, OIConstants.kDriveDeadband),
-                    -MathUtil.applyDeadband(
-                        controller.getLeftX() * 0.5, OIConstants.kDriveDeadband),
-                    -MathUtil.applyDeadband(
-                        controller.getRightX() * 0.5, OIConstants.kDriveDeadband),
-                    true,
-                    true),
-            driveSubsystem));
+    setDefaultCommands();
   }
 
-  private void configureBindings() {}
+  private void setDefaultCommands() {
+    driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
+
+    intakeSubsystem.setDefaultCommand(
+        new RunCommand(() -> intakeSubsystem.setArmToAprilTag(), intakeSubsystem));
+  }
+
+  private void configureBindings() {
+    new JoystickButton(controller, Button.kA.value)
+        .whileTrue(new RunCommand(() -> driveSubsystem.setX(), driveSubsystem));
+
+    new JoystickButton(controller, Button.kB.value)
+        .whileTrue(
+            new RunCommand(
+                () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
+                intakeSubsystem));
+
+    new JoystickButton(controller, Button.kX.value)
+        .whileTrue(
+            new RunCommand(
+                () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
+                shooterSubsystem))
+        .whileFalse(new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
+  }
 
   public Command getAutonomousCommand() {
     TrajectoryConfig config =

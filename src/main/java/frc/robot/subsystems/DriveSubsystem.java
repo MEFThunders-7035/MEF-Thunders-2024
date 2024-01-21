@@ -129,8 +129,8 @@ public class DriveSubsystem extends SubsystemBase {
       if (m_currentTranslationMag != 0.0) {
         directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / m_currentTranslationMag);
       } else {
-        directionSlewRate =
-            500.0; // some high number that means the slew rate is effectively instantaneous
+        directionSlewRate = 500.0; // some high number that means the slew rate is effectively
+        // instantaneous
       }
 
       double currentTime = WPIUtilJNI.now() * 1e-6;
@@ -143,7 +143,8 @@ public class DriveSubsystem extends SubsystemBase {
         m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
       } else if (angleDif > 0.85 * Math.PI) {
         if (m_currentTranslationMag
-            > 1e-4) { // some small number to avoid floating-point errors with equality checking
+            > 1e-4) { // some small number to avoid floating-point errors with equality
+          // checking
           // keep currentTranslationDir unchanged
           m_currentTranslationMag = m_magLimiter.calculate(0.0);
         } else {
@@ -177,10 +178,7 @@ public class DriveSubsystem extends SubsystemBase {
         SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedDelivered,
-                    ySpeedDelivered,
-                    rotDelivered,
-                    navX.getRotation2d())
+                    xSpeedDelivered, ySpeedDelivered, rotDelivered, navX.getRotation2d())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -291,4 +289,5 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
     driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
+  }
 }

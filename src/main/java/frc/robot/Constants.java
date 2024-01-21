@@ -127,6 +127,17 @@ public final class Constants {
 
     public static final double kShooterSpeed = 0.5;
   }
+
+  public static final class CameraConstants {
+    public static final class PiCamera extends CameraDetails {
+      public static final String cameraName = "piCamera";
+      public static final double kCameraHeight = 0.0;
+      public static final double kCameraDistanceMeters =
+          0.45; // ~45 cm away from the center of the robot
+      public static final double kCameraPitchRadians = Math.PI / 4;
+      public static final Transform3d robotToCam =
+          new Transform3d(
+              new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
   }
 
   public static final class AutoConstants {

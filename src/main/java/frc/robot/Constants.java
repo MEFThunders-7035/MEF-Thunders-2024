@@ -168,6 +168,20 @@ public final class Constants {
     public static final int kShooter2CanID = 12;
 
     public static final double kShooterSpeed = 0.5;
+
+    public static final class ShooterPIDConstants {
+      // TODO: Tune these values
+      public static final double kP = 0.1;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+      public static final double kFF = 0.0;
+    }
+
+    public static final int kShooterEncoderCPR =
+        80; // The encoder isn't the best, but we will make do.
+    public static final double kShooterEncoderGearAmount = 1; // ! CHANGE THIS WHEN WE GET THE GEAR
+    public static final double kShooterEncoderPositionFactor = 1 / (kShooterEncoderGearAmount);
+    public static final int kSmartCurrentLimit = 40;
   }
 
   public static final class CameraConstants {

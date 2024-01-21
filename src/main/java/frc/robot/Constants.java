@@ -120,7 +120,11 @@ public final class Constants {
   }
 
   public static final class OIConstants {
-    public static double kDriveDeadband = 0.05;
+    public static final double kDriveDeadband = 0.05;
+    public static final double kDriveSensitivity = 0.5; // The rest will be added by "boost"
+    public static final double kDriveMaxOutput = 1.0;
+  }
+
   public static final class IntakeConstants {
     public static final int kArmMotorCanID = 9;
     public static final int kIntakeMotorCanID = 10;

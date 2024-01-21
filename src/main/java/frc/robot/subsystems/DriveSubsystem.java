@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,12 +11,16 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
+import frc.robot.Constants.OIConstants;
 import frc.utils.SwerveUtils;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -240,4 +245,50 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return navX.getRate();
   }
+
+  /**
+   * Drives the robot with the given Controller.
+   *
+   * <p>This is a convenience method for {@link #drive(double, double, double, double, double,
+   * boolean, boolean)}. And it handles the deadband and boost.
+   *
+   * @param controller The controller to drive with.
+   * @return The command to drive the robot.
+   */
+  public Command defaultDriveCommand(XboxController controller) {
+    return new RunCommand(
+        () ->
+            driveWithExtras(
+                controller.getLeftY(),
+                controller.getLeftX(),
+                -controller.getRightX(),
+                controller.getRightTriggerAxis()),
+        this);
+  }
+
+  /** This will handle adding Deadband, and adding boost to the drive. */
+  public void driveWithExtras(
+      double xSpeed,
+      double ySpeed,
+      double rot,
+      double boost,
+      double deadband,
+      boolean fieldRelative,
+      boolean rateLimit) {
+    final double sens = OIConstants.kDriveSensitivity; // The rest will be added by "boost"
+    drive(
+        MathUtil.applyDeadband(xSpeed * (sens + boost * 1 - sens), deadband),
+        MathUtil.applyDeadband(ySpeed * (sens + boost * 1 - sens), deadband),
+        MathUtil.applyDeadband(rot * sens, deadband),
+        true,
+        true);
+  }
+
+  public void driveWithExtras(
+      double xSpeed, double ySpeed, double rot, double boost, double deadband) {
+    driveWithExtras(xSpeed, ySpeed, rot, boost, deadband, true, true);
+  }
+
+  public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
+    driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
 }

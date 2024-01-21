@@ -31,6 +31,12 @@ public class IntakeSubsystem extends SubsystemBase {
     intake.set(speed);
   }
 
+  public void checkIfHasNote() {
+    if (hasNote() && intake.get() > 0) {
+      intake.set(0);
+    }
+  }
+
   public Command loadToShooter() {
     return new Command() {
       @Override
@@ -57,6 +63,7 @@ public class IntakeSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("ColorSensor - Green", colorSensor.getGreen());
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
-    setIntakeSpeed(intake.get());
+
+    checkIfHasNote();
   }
 }

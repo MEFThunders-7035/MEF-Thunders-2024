@@ -121,6 +121,12 @@ public final class Constants {
 
   public static final class OIConstants {
     public static double kDriveDeadband = 0.05;
+
+  public static final class ShooterConstants {
+    public static final int kShooterMotorPwmID = 0;
+
+    public static final double kShooterSpeed = 0.5;
+  }
   }
 
   public static final class AutoConstants {

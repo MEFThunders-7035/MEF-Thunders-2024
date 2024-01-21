@@ -121,6 +121,33 @@ public final class Constants {
 
   public static final class OIConstants {
     public static double kDriveDeadband = 0.05;
+  public static final class IntakeConstants {
+    public static final int kArmMotorCanID = 9;
+    public static final int kIntakeMotorCanID = 10;
+
+    public static final IdleMode kArmMotorIdleMode = IdleMode.kCoast;
+
+    public static final class ColorSensorConstants {
+      public static final I2C.Port kColorSensorPort = I2C.Port.kMXP; // Connected to the NavX MXP
+
+      public static final Color kCheckColor = new Color(200, 100, 0); // Color OF Note: Red - Orange
+    }
+
+    public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.
+    public static final double kArmEncoderGearAmount = 1; // ! CHANGE THIS WHEN WE GET THE GEAR
+    public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
+    public static final int kSmartCurrentLimit = 40;
+
+    public static final double kIntakeSpeed = 0.5;
+
+    public static final class ArmPIDConstants {
+      // TODO: Tune these values
+      public static final double kP = 0.1;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+      public static final double kFF = 0.0;
+    }
+  }
 
   public static final class ShooterConstants {
     public static final int kShooterMotorPwmID = 0;
@@ -138,6 +165,8 @@ public final class Constants {
       public static final Transform3d robotToCam =
           new Transform3d(
               new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
+              new Rotation3d(0, kCameraPitchRadians, 0));
+    }
   }
 
   public static final class AutoConstants {

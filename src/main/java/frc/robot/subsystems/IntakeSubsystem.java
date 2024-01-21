@@ -38,7 +38,11 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public Command loadToShooter() {
-    return new Command() {
+    class loadShooterCommand extends Command {
+      loadShooterCommand() {
+        addRequirements(IntakeSubsystem.this);
+      }
+
       @Override
       public void initialize() {
         setIntakeSpeed(IntakeConstants.kIntakeSpeed);
@@ -53,7 +57,9 @@ public class IntakeSubsystem extends SubsystemBase {
       public void end(boolean interrupted) {
         setIntakeSpeed(0);
       }
-    };
+    }
+
+    return new loadShooterCommand();
   }
 
   @Override

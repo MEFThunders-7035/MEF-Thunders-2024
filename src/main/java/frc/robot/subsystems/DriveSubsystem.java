@@ -275,8 +275,8 @@ public class DriveSubsystem extends SubsystemBase {
       boolean rateLimit) {
     final double sens = OIConstants.kDriveSensitivity; // The rest will be added by "boost"
     drive(
-        MathUtil.applyDeadband(xSpeed * (sens + boost * 1 - sens), deadband),
-        MathUtil.applyDeadband(ySpeed * (sens + boost * 1 - sens), deadband),
+        MathUtil.applyDeadband(xSpeed * (sens + (boost * (1 - sens))), deadband),
+        MathUtil.applyDeadband(ySpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(rot * sens, deadband),
         true,
         true);

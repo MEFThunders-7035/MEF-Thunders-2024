@@ -235,6 +235,10 @@ public class DriveSubsystem extends SubsystemBase {
     return navX.getRotation2d().getDegrees();
   }
 
+  public Rotation2d getRotation2d() {
+    return navX.getRotation2d();
+  }
+
   /**
    * Returns the turn rate of the robot.
    *

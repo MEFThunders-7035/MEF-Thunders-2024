@@ -93,7 +93,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.1, 0.05); // between 10 and 20 deg
 
-    pidController.setReference(armAngle, ControlType.kPosition);
+    setArmToPosition(armAngle);
   }
 
   @Override

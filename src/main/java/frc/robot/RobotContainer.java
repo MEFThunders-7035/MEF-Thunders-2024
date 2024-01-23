@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutoConstants;
@@ -28,6 +29,7 @@ public class RobotContainer {
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ArmSubsystem armSubsystem = new ArmSubsystem();
+
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
@@ -50,14 +52,17 @@ public class RobotContainer {
         .whileTrue(
             new RunCommand(
                 () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
-                intakeSubsystem));
+                intakeSubsystem))
+        .whileFalse(new RunCommand(() -> intakeSubsystem.setIntakeSpeed(0), intakeSubsystem));
 
     new JoystickButton(controller, Button.kX.value)
-        .whileTrue(
-            new RunCommand(
-                () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
-                shooterSubsystem))
+        .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(0.6), shooterSubsystem))
         .whileFalse(new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
+
+    new JoystickButton(controller, Button.kStart.value)
+        .onTrue(
+            new RunCommand(() -> driveSubsystem.zeroHeading(), driveSubsystem)
+                .alongWith(new PrintCommand("Zeroing Heading")));
   }
 
   public Command getAutonomousCommand() {

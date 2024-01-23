@@ -34,6 +34,7 @@ public class ArmSubsystem extends SubsystemBase {
   private void setupSparkMax() {
 
     encoder.setPositionConversionFactor(IntakeConstants.kArmEncoderPositionFactor);
+    encoder.setInverted(true);
     pidController.setFeedbackDevice(encoder);
 
     pidController.setP(IntakeConstants.ArmPIDConstants.kP);

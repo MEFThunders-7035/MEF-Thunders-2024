@@ -15,7 +15,7 @@ public class IntakeSubsystem extends SubsystemBase {
       new ColorSensorV3(ColorSensorConstants.kColorSensorPort);
 
   public IntakeSubsystem() {
-    intake = new CANSparkMax(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
+    intake = new CANSparkMax(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushed);
   }
 
   public boolean hasNote() {

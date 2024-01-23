@@ -235,6 +235,10 @@ public class DriveSubsystem extends SubsystemBase {
     return navX.getRotation2d().getDegrees();
   }
 
+  public Rotation2d getRotation2d() {
+    return navX.getRotation2d();
+  }
+
   /**
    * Returns the turn rate of the robot.
    *
@@ -275,8 +279,8 @@ public class DriveSubsystem extends SubsystemBase {
       boolean rateLimit) {
     final double sens = OIConstants.kDriveSensitivity; // The rest will be added by "boost"
     drive(
-        MathUtil.applyDeadband(xSpeed * (sens + boost * 1 - sens), deadband),
-        MathUtil.applyDeadband(ySpeed * (sens + boost * 1 - sens), deadband),
+        MathUtil.applyDeadband(xSpeed * (sens + (boost * (1 - sens))), deadband),
+        MathUtil.applyDeadband(ySpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(rot * sens, deadband),
         true,
         true);

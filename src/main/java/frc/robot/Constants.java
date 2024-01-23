@@ -150,7 +150,7 @@ public final class Constants {
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
 
-    public static final double kIntakeSpeed = 0.5;
+    public static final double kIntakeSpeed = 1;
 
     public static final class ArmPIDConstants {
       // TODO: Tune these values

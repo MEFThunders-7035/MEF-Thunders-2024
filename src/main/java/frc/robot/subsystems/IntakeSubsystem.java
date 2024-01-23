@@ -15,11 +15,23 @@ public class IntakeSubsystem extends SubsystemBase {
       new ColorSensorV3(ColorSensorConstants.kColorSensorPort);
 
   public IntakeSubsystem() {
-    intake = new CANSparkMax(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
+    intake = new CANSparkMax(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushed);
   }
 
   public boolean hasNote() {
-    return colorSensor.getRed() > 150 && colorSensor.getBlue() < 150;
+    int red = colorSensor.getRed();
+    int blue = colorSensor.getBlue();
+    // If we are really close, we will decrease the threshold.
+    // Proximity is inversely proportional to distance. and max of 2047 is 0 inches.
+    if (colorSensor.getProximity() > 1600) {
+      red = (int) (red * (1600.0 / colorSensor.getProximity()));
+      blue = (int) (blue * (1600.0 / colorSensor.getProximity()));
+    }
+
+    return colorSensor.getProximity() > 700
+        && red > 2000
+        && blue < 2500
+        && red > colorSensor.getGreen();
   }
 
   public void setIntakeSpeed(double speed) {
@@ -69,6 +81,7 @@ public class IntakeSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("ColorSensor - Green", colorSensor.getGreen());
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
+    SmartDashboard.putBoolean("Note Detected", hasNote());
 
     checkIfHasNote();
   }

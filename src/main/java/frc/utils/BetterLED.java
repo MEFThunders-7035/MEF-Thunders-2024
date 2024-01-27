@@ -93,7 +93,7 @@ public class BetterLED extends AddressableLED {
    *
    * @param func The runnable to add to the call list.
    */
-  public void addToLoop(Runnable func) {
+  public void addRunnableToLoop(Runnable func) {
     callList.add(func);
   }
 

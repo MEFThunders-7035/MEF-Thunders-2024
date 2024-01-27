@@ -87,6 +87,16 @@ public class BetterLED extends AddressableLED {
         });
   }
 
+  /**
+   * Adds a runnable to the call list, this will be called every loop. You probably don't need to
+   * use this, but it's here if you need it.
+   *
+   * @param func The runnable to add to the call list.
+   */
+  public void addToLoop(Runnable func) {
+    callList.add(func);
+  }
+
   @Override
   public void setLength(int length) {
     mainBuffer = new AddressableLEDBuffer(length);

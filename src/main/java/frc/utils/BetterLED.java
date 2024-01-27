@@ -75,6 +75,18 @@ public class BetterLED extends AddressableLED {
     changeLoopTo(() -> {}); // Empty runnable
   }
 
+  public void blink(Color color, int blinkCount) {
+    changeLoopTo(
+        () -> {
+          for (int i = 0; i < blinkCount; i++) {
+            fill(color);
+            Timer.delay(0.5);
+            fill(Color.kBlack);
+            Timer.delay(0.5);
+          }
+        });
+  }
+
   @Override
   public void setLength(int length) {
     mainBuffer = new AddressableLEDBuffer(length);

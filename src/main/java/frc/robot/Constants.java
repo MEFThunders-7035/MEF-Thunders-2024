@@ -184,6 +184,11 @@ public final class Constants {
     }
   }
 
+  public static final class LEDConstants {
+    public static final int kLedPin = 9;
+    public static final int kLedCount = 50;
+  }
+
   public static final class AutoConstants {
     public static final double kMaxSpeedMetersPerSecond = 3;
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;

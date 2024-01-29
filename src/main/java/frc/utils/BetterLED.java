@@ -88,6 +88,38 @@ public class BetterLED extends AddressableLED {
   }
 
   /**
+   * Breathe the led, this will light up the led and then light it down. This will repeat forever.
+   *
+   * @param color The color to breathe. see: WPILIB {@link Color}
+   * @param delayTime The time delay between all the steps in seconds; NOT the total time!
+   * @param max The max value of the led, normally the maximum is 255.
+   * @param min The min value of the led, normally the minimum is 0.
+   */
+  public void breathe(Color color, double delayTime, int max, int min) {
+    changeLoopTo(
+        () -> {
+          // Light UP The led
+          for (int i = min; i < max; i++) {
+            fill(new Color(color.red * i, color.green * i, color.blue * i));
+            Timer.delay(delayTime);
+          }
+          // Light DOWN the led
+          for (int i = max; i > min; i--) {
+            fill(new Color(color.red * i, color.green * i, color.blue * i));
+            Timer.delay(delayTime);
+          }
+        });
+  }
+
+  public void breathe(Color color, double delayTime) {
+    breathe(color, delayTime, 255, 0);
+  }
+
+  public void breathe(Color color) {
+    breathe(color, 0.01);
+  }
+
+  /**
    * Adds a runnable to the call list, this will be called every loop. You probably don't need to
    * use this, but it's here if you need it.
    *

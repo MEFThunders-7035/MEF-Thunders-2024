@@ -107,6 +107,7 @@ public class RobotContainer {
             driveSubsystem);
 
     // Reset odometry to the starting pose of the trajectory.
+    // This is to ensure that odometry starts at the right place if we end up re-running this
     driveSubsystem.resetOdometry(exampleTrajectory.getInitialPose());
 
     return swerveControllerCommand.andThen(() -> driveSubsystem.drive(0, 0, 0));

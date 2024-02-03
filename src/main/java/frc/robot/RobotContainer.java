@@ -24,6 +24,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
     setDefaultCommands();
+    PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
   }
 
   private void setDefaultCommands() {

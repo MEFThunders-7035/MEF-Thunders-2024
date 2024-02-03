@@ -87,6 +87,12 @@ public class RobotContainer {
             driveSubsystem
                 .runOnce(driveSubsystem::zeroHeading)
                 .alongWith(new PrintCommand("Zeroing Heading")));
+
+    new JoystickButton(controller, Button.kBack.value)
+        .whileTrue(
+            new RunCommand(
+                () -> intakeSubsystem.setIntakeSpeed(-IntakeConstants.kIntakeSpeed),
+                intakeSubsystem));
   }
 
   public Command getAutonomousCommand() {

@@ -45,6 +45,11 @@ public class RobotContainer {
 
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
+    intakeSubsystem.setDefaultCommand(
+        new RunCommand(() -> intakeSubsystem.setIntakeSpeed(0), intakeSubsystem));
+
+    shooterSubsystem.setDefaultCommand(
+        new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
 
     armSubsystem.setDefaultCommand(
         new RunCommand(() -> armSubsystem.setArmToAprilTag(), armSubsystem));

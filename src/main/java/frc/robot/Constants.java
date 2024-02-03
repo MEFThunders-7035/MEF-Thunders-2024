@@ -155,7 +155,7 @@ public final class Constants {
 
     public static final class ArmPIDConstants {
       // TODO: Tune these values
-      public static final double kP = 0.1;
+      public static final double kP = 0.2;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double kFF = 0.0;
@@ -168,7 +168,7 @@ public final class Constants {
     public static final int kShooter1CanID = 11;
     public static final int kShooter2CanID = 12;
 
-    public static final double kShooterSpeed = 0.5;
+    public static final double kShooterSpeed = 0.6;
   }
 
   public static final class CameraConstants {

@@ -282,8 +282,8 @@ public class DriveSubsystem extends SubsystemBase {
         MathUtil.applyDeadband(xSpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(ySpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(rot * sens, deadband),
-        true,
-        true);
+        fieldRelative,
+        rateLimit);
   }
 
   public void driveWithExtras(

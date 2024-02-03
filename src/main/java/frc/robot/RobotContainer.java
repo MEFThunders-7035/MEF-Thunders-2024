@@ -70,6 +70,17 @@ public class RobotContainer {
                 () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
                 shooterSubsystem));
 
+    new JoystickButton(controller, Button.kY.value) // Shoot
+        .whileTrue(
+            new RunCommand(
+                    () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
+                    shooterSubsystem)
+                .withTimeout(1)
+                .andThen(
+                    new RunCommand(
+                            () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
+                            shooterSubsystem)
+                        .deadlineWith(intakeSubsystem.loadToShooter())));
 
     new JoystickButton(controller, Button.kStart.value)
         .onTrue(

@@ -52,13 +52,13 @@ public class DriveSubsystem extends SubsystemBase {
           SwerveModuleConstants.kBackRightChassisAngularOffset);
 
   // Slew rate filter variables for controlling lateral acceleration
-  private double m_currentRotation = 0.0;
-  private double m_currentTranslationDir = 0.0;
-  private double m_currentTranslationMag = 0.0;
+  private double currentRotation = 0.0;
+  private double currentTranslationDir = 0.0;
+  private double currentTranslationMag = 0.0;
 
-  private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
-  private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
-  private double m_prevTime = WPIUtilJNI.now() * 1e-6;
+  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
+  private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
+  private double prevTime = WPIUtilJNI.now() * 1e-6;
 
   SwerveDriveOdometry swerveOdometry =
       new SwerveDriveOdometry(
@@ -126,53 +126,53 @@ public class DriveSubsystem extends SubsystemBase {
 
       // Calculate the direction slew rate based on an estimate of the lateral acceleration
       double directionSlewRate;
-      if (m_currentTranslationMag != 0.0) {
-        directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / m_currentTranslationMag);
+      if (currentTranslationMag != 0.0) {
+        directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / currentTranslationMag);
       } else {
         directionSlewRate = 500.0; // some high number that means the slew rate is effectively
         // instantaneous
       }
 
       double currentTime = WPIUtilJNI.now() * 1e-6;
-      double elapsedTime = currentTime - m_prevTime;
-      double angleDif = SwerveUtils.AngleDifference(inputTranslationDir, m_currentTranslationDir);
+      double elapsedTime = currentTime - prevTime;
+      double angleDif = SwerveUtils.AngleDifference(inputTranslationDir, currentTranslationDir);
       if (angleDif < 0.45 * Math.PI) {
-        m_currentTranslationDir =
+        currentTranslationDir =
             SwerveUtils.StepTowardsCircular(
-                m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
+                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+        currentTranslationMag = magLimiter.calculate(inputTranslationMag);
       } else if (angleDif > 0.85 * Math.PI) {
-        if (m_currentTranslationMag
+        if (currentTranslationMag
             > 1e-4) { // some small number to avoid floating-point errors with equality
           // checking
           // keep currentTranslationDir unchanged
-          m_currentTranslationMag = m_magLimiter.calculate(0.0);
+          currentTranslationMag = magLimiter.calculate(0.0);
         } else {
-          m_currentTranslationDir = SwerveUtils.WrapAngle(m_currentTranslationDir + Math.PI);
-          m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
+          currentTranslationDir = SwerveUtils.WrapAngle(currentTranslationDir + Math.PI);
+          currentTranslationMag = magLimiter.calculate(inputTranslationMag);
         }
       } else {
-        m_currentTranslationDir =
+        currentTranslationDir =
             SwerveUtils.StepTowardsCircular(
-                m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        m_currentTranslationMag = m_magLimiter.calculate(0.0);
+                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+        currentTranslationMag = magLimiter.calculate(0.0);
       }
-      m_prevTime = currentTime;
+      prevTime = currentTime;
 
-      xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir);
-      ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir);
-      m_currentRotation = m_rotLimiter.calculate(rot);
+      xSpeedCommanded = currentTranslationMag * Math.cos(currentTranslationDir);
+      ySpeedCommanded = currentTranslationMag * Math.sin(currentTranslationDir);
+      currentRotation = rotLimiter.calculate(rot);
 
     } else {
       xSpeedCommanded = xSpeed;
       ySpeedCommanded = ySpeed;
-      m_currentRotation = rot;
+      currentRotation = rot;
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain
     double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-    double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+    double rotDelivered = currentRotation * DriveConstants.kMaxAngularSpeed;
 
     var swerveModuleStates =
         SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(

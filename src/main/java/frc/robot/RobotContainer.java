@@ -62,12 +62,14 @@ public class RobotContainer {
         .whileTrue(
             new RunCommand(
                 () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
-                intakeSubsystem))
-        .whileFalse(new RunCommand(() -> intakeSubsystem.setIntakeSpeed(0), intakeSubsystem));
+                intakeSubsystem));
 
     new JoystickButton(controller, Button.kX.value)
-        .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(0.6), shooterSubsystem))
-        .whileFalse(new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
+        .whileTrue(
+            new RunCommand(
+                () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
+                shooterSubsystem));
+
 
     new JoystickButton(controller, Button.kStart.value)
         .onTrue(

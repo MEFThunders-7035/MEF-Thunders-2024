@@ -51,13 +51,12 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(
         new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
 
-    armSubsystem.setDefaultCommand(
-        new RunCommand(() -> armSubsystem.setArmToAprilTag(), armSubsystem));
+    armSubsystem.setDefaultCommand(new RunCommand(armSubsystem::setArmToAprilTag, armSubsystem));
   }
 
   private void configureBindings() {
     new JoystickButton(controller, Button.kA.value)
-        .whileTrue(new RunCommand(() -> driveSubsystem.setX(), driveSubsystem));
+        .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
     new JoystickButton(controller, Button.kB.value)
         .whileTrue(
@@ -72,7 +71,8 @@ public class RobotContainer {
 
     new JoystickButton(controller, Button.kStart.value)
         .onTrue(
-            new RunCommand(() -> driveSubsystem.zeroHeading(), driveSubsystem)
+            driveSubsystem
+                .runOnce(driveSubsystem::zeroHeading)
                 .alongWith(new PrintCommand("Zeroing Heading")));
   }
 

@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
@@ -50,28 +51,12 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public Command loadToShooter() {
-    class loadShooterCommand extends Command {
-      loadShooterCommand() {
-        addRequirements(IntakeSubsystem.this);
-      }
-
-      @Override
-      public void initialize() {
-        setIntakeSpeed(IntakeConstants.kIntakeSpeed);
-      }
-
-      @Override
-      public boolean isFinished() {
-        return !hasNote();
-      }
-
-      @Override
-      public void end(boolean interrupted) {
-        setIntakeSpeed(0);
-      }
-    }
-
-    return new loadShooterCommand();
+    return new FunctionalCommand(
+        () -> {},
+        () -> intake.set(IntakeConstants.kIntakeSpeed),
+        interrupted -> setIntakeSpeed(0),
+        () -> !hasNote(),
+        this);
   }
 
   @Override

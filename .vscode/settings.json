@@ -43,6 +43,7 @@
     "AHRS",
     "Brushless",
     "Deadband",
+    "intaking",
     "Odometry",
     "Roborio",
     "setpoint",

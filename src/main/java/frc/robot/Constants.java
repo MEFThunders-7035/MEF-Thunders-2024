@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.DataTypes.CameraDetails;
@@ -30,11 +29,8 @@ public final class Constants {
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
 
     // Chassis configuration
-    public static final double kTrackWidth =
-        Units.inchesToMeters(26.5); // TODO: Change this to the actual track width
-    // Distance between centers of right and left wheels on robot
-    public static final double kWheelBase =
-        Units.inchesToMeters(26.5); // TODO: Change this to the actual wheel base
+    public static final double kTrackWidth = 0.71; // 71 cm between left and right wheels on robot
+    public static final double kWheelBase = 0.79; // 79 cm between front and back wheels on robot
 
     public static final class MotorConstants {
       // Spark MAX CAN IDs
@@ -73,8 +69,7 @@ public final class Constants {
   public static final class ModuleConstants {
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
     // This changes the drive speed of the module (a pinion gear with more teeth will result in
-    // a
-    // robot that drives faster).
+    // a robot that drives faster).
     public static final int kDrivingMotorPinionTeeth = 13;
 
     // Invert the turning encoder, since the output shaft rotates in the opposite direction of
@@ -87,8 +82,7 @@ public final class Constants {
     public static final double kWheelDiameterMeters = 0.0762;
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
     // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on
-    // the
-    // bevel pinion
+    // the bevel pinion
     public static final double kDrivingMotorReduction =
         (45.0 * 22) / (kDrivingMotorPinionTeeth * 15);
     public static final double kDriveWheelFreeSpeedRps =
@@ -129,7 +123,7 @@ public final class Constants {
   }
 
   public static final class OIConstants {
-    public static final double kDriveDeadband = 0.05;
+    public static final double kDriveDeadband = 0.02;
     public static final double kDriveSensitivity = 0.5; // The rest will be added by "boost"
     public static final double kDriveMaxOutput = 1.0;
   }
@@ -147,7 +141,7 @@ public final class Constants {
     }
 
     public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.
-    public static final double kArmEncoderGearAmount = 1; // ! CHANGE THIS WHEN WE GET THE GEAR
+    public static final double kArmEncoderGearAmount = 1; // TODO: CHANGE THIS WHEN WE GET THE GEAR
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
 
@@ -177,7 +171,7 @@ public final class Constants {
       public static final double kCameraHeight = 0.0;
       public static final double kCameraDistanceMeters =
           0.45; // ~45 cm away from the center of the robot
-      public static final double kCameraPitchRadians = Math.PI / 4;
+      public static final double kCameraPitchRadians = Math.PI / 4; // 45 degree up
       public static final Transform3d robotToCam =
           new Transform3d(
               new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),

@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
@@ -258,14 +257,13 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The command to drive the robot.
    */
   public Command defaultDriveCommand(XboxController controller) {
-    return new RunCommand(
+    return run(
         () ->
             driveWithExtras(
                 controller.getLeftY(),
                 controller.getLeftX(),
                 -controller.getRightX(),
-                controller.getRightTriggerAxis()),
-        this);
+                controller.getRightTriggerAxis()));
   }
 
   /** This will handle adding Deadband, and adding boost to the drive. */

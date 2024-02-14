@@ -251,7 +251,7 @@ public class DriveSubsystem extends SubsystemBase {
    * Drives the robot with the given Controller.
    *
    * <p>This is a convenience method for {@link #drive(double, double, double, double, double,
-   * boolean, boolean)}. And it handles the deadband and boost.
+   * boolean, boolean)}. It's made to handle the deadband and boost.
    *
    * @param controller The controller to drive with.
    * @return The command to drive the robot.

@@ -36,7 +36,9 @@ public final class PhotonCameraSystem {
   }
 
   /**
-   * This is used for a Target that you know the height of.
+   * This is used for a Target that you know the height of. If the target is not found, it will
+   * return empty. It also won't check if the target is actually the target you are looking for. It
+   * will just return the distance to the first target it sees.
    *
    * @param targetHeightMeters The height of the target in meters.
    * @return the distance to the target in meters.

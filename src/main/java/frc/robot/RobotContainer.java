@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -11,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.commands.SmartShootCommand;
+import frc.robot.commands.TestAutoCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -47,40 +50,34 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    new JoystickButton(controller, Button.kA.value)
+    new JoystickButton(controller, Button.kA.value) // Handbrake
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
-    new JoystickButton(controller, Button.kB.value)
+    new JoystickButton(controller, Button.kB.value) // Intake
         .whileTrue(
             new RunCommand(
-                () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
-                intakeSubsystem));
+                    () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
+                    intakeSubsystem)
+                .alongWith(intakeSubsystem.vibrateControllerOnNoteCommand(controller)));
 
-    new JoystickButton(controller, Button.kX.value)
+    // TODO: DEPRECATED, REMOVE
+    new JoystickButton(controller, Button.kX.value) // Shoot, basic (Run Shooter)
         .whileTrue(
             new RunCommand(
                 () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
                 shooterSubsystem));
 
-    new JoystickButton(controller, Button.kY.value) // Shoot
-        .whileTrue(
-            new RunCommand(
-                    () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
-                    shooterSubsystem)
-                .withTimeout(1)
-                .andThen(
-                    new RunCommand(
-                            () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
-                            shooterSubsystem)
-                        .deadlineWith(intakeSubsystem.loadToShooter())));
+    new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
 
-    new JoystickButton(controller, Button.kStart.value)
+    new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
             driveSubsystem
                 .runOnce(driveSubsystem::zeroHeading)
                 .alongWith(new PrintCommand("Zeroing Heading")));
 
-    new JoystickButton(controller, Button.kBack.value)
+    // This command is here incase the intake gets stuck.
+    new JoystickButton(controller, Button.kBack.value) // Force push note out of intake
         .whileTrue(
             new RunCommand(
                 () -> intakeSubsystem.setIntakeSpeed(-IntakeConstants.kIntakeSpeed),

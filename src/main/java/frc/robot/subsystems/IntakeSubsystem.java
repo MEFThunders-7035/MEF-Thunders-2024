@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,14 +10,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
 import frc.robot.commands.VibrateControllerCommand;
+import frc.utils.sim_utils.CANSparkMAXWrapped;
 
 public class IntakeSubsystem extends SubsystemBase {
-  private final CANSparkMax intake;
+  private final CANSparkMAXWrapped intake;
   private final ColorSensorV3 colorSensor =
       new ColorSensorV3(ColorSensorConstants.kColorSensorPort);
 
   public IntakeSubsystem() {
-    intake = new CANSparkMax(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
+    intake = new CANSparkMAXWrapped(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
   }
 
   public boolean hasNote() {

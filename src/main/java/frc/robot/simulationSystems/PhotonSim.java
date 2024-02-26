@@ -27,5 +27,7 @@ public class PhotonSim {
     return cameraSim;
   }
 
-  public static void addAprilTagWithID(int id) {}
+  public static void moveCameraSim(Pose2d pose) {
+    visionSim.update(pose);
+  }
 }

@@ -66,4 +66,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {}
+
+  @Override
+  public void simulationInit() {
+    PhotonSim.setupSim();
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    m_robotContainer.simPeriodic();
+  }
 }

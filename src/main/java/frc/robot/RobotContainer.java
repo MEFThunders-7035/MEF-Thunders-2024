@@ -1,7 +1,10 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -9,8 +12,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.SmartShootCommand;
-import frc.robot.commands.TestAutoCommand;
-import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -20,16 +21,19 @@ import frc.robot.subsystems.ShooterSubsystem;
 public class RobotContainer {
   private final XboxController controller = new XboxController(0);
 
+  private final SendableChooser<Command> autoChooser;
+
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ArmSubsystem armSubsystem = new ArmSubsystem();
-
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
     configureBindings();
     setDefaultCommands();
+    autoChooser = AutoBuilder.buildAutoChooser();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
+    SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 
   public void simPeriodic() {
@@ -83,6 +87,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return new TestAutoCommand(driveSubsystem);
+    return autoChooser.getSelected().andThen(() -> driveSubsystem.drive(0, 0, 0));
   }
 }

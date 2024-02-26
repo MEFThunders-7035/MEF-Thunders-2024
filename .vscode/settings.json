@@ -46,6 +46,7 @@
     "AHRS",
     "Brushless",
     "Deadband",
+    "Holonomic",
     "intaking",
     "Odometry",
     "Roborio",

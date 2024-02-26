@@ -29,4 +29,8 @@ public class SparkMAXSimAddon {
     }
     return sparkMaxes.get(deviceID);
   }
+
+  public static void resetData() {
+    sparkMaxes.clear();
+  }
 }

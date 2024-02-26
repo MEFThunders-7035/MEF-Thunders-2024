@@ -15,6 +15,14 @@ public class SparkMAXSimAddon {
     sparkMaxes.put(sparkMAX.getDeviceId(), sparkMAX);
   }
 
+  public static void removeSparkMAX(CANSparkMax sparkMAX) {
+    if (!sparkMaxes.containsKey(sparkMAX.getDeviceId())) {
+      throw new IllegalArgumentException(
+          "SparkMAX with deviceID " + sparkMAX.getDeviceId() + " does not exist");
+    }
+    sparkMaxes.remove(sparkMAX.getDeviceId());
+  }
+
   public static CANSparkMax getSparkMAX(int deviceID) {
     if (!sparkMaxes.containsKey(deviceID)) {
       throw new IllegalArgumentException("SparkMAX with deviceID " + deviceID + " does not exist");

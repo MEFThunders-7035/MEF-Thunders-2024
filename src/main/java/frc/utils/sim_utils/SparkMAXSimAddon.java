@@ -7,26 +7,38 @@ import java.util.Map;
 public class SparkMAXSimAddon {
   private static Map<Integer, CANSparkMax> sparkMaxes = new HashMap<>();
 
-  public static void addSparkMAX(CANSparkMax sparkMAX) {
-    if (sparkMaxes.containsKey(sparkMAX.getDeviceId())) {
-      throw new IllegalArgumentException(
-          "SparkMAX with deviceID " + sparkMAX.getDeviceId() + " already exists");
+  private static void throwIfSparkMAXExists(int deviceID) {
+    if (sparkMaxes.containsKey(deviceID)) {
+      throw new IllegalArgumentException("SparkMAX with deviceID " + deviceID + " already exists");
     }
+  }
+
+  private static void throwIfSparkMAXExists(CANSparkMax sparkMAX) {
+    throwIfSparkMAXExists(sparkMAX.getDeviceId());
+  }
+
+  private static void throwIfSparkMAXDoesNotExist(int deviceID) {
+    if (!sparkMaxes.containsKey(deviceID)) {
+      throw new IllegalArgumentException("SparkMAX with deviceID " + deviceID + " does not exist");
+    }
+  }
+
+  private static void throwIfSparkMAXDoesNotExist(CANSparkMax sparkMAX) {
+    throwIfSparkMAXDoesNotExist(sparkMAX.getDeviceId());
+  }
+
+  public static void addSparkMAX(CANSparkMax sparkMAX) {
+    throwIfSparkMAXExists(sparkMAX);
     sparkMaxes.put(sparkMAX.getDeviceId(), sparkMAX);
   }
 
   public static void removeSparkMAX(CANSparkMax sparkMAX) {
-    if (!sparkMaxes.containsKey(sparkMAX.getDeviceId())) {
-      throw new IllegalArgumentException(
-          "SparkMAX with deviceID " + sparkMAX.getDeviceId() + " does not exist");
-    }
+    throwIfSparkMAXDoesNotExist(sparkMAX);
     sparkMaxes.remove(sparkMAX.getDeviceId());
   }
 
   public static CANSparkMax getSparkMAX(int deviceID) {
-    if (!sparkMaxes.containsKey(deviceID)) {
-      throw new IllegalArgumentException("SparkMAX with deviceID " + deviceID + " does not exist");
-    }
+    throwIfSparkMAXDoesNotExist(deviceID);
     return sparkMaxes.get(deviceID);
   }
 

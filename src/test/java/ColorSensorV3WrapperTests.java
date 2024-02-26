@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ColorSensorV3WrapperTests {
+class ColorSensorV3WrapperTests {
   private ColorSensorV3Wrapped colorSensor;
 
   @BeforeEach

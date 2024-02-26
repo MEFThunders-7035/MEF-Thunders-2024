@@ -92,7 +92,9 @@ public class DriveSubsystem extends SubsystemBase {
 
   private void updatePoseWithVision() {
     var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
-    if (poseOpt.isPresent()) {
+    if (poseOpt.isPresent()
+        && poseOpt.get().estimatedPose.toPose2d().relativeTo(getPose()).getTranslation().getNorm()
+            < 1.0) /* Only trust the vision if it's close to the current pose */ {
       swerveOdometry.addVisionMeasurement(
           poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
     }

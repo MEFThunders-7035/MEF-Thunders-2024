@@ -10,4 +10,12 @@ public class CANSparkMAXWrapped extends CANSparkMax {
       SparkMAXSimAddon.addSparkMAX(this);
     }
   }
+
+  @Override
+  public void close() {
+    if (RobotBase.isSimulation()) {
+      SparkMAXSimAddon.removeSparkMAX(this);
+    }
+    super.close();
+  }
 }

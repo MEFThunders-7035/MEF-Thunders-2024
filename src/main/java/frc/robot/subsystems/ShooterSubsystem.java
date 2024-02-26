@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-// ! WARNING: This code will be changed to use 2 sparkMAXes with encoders and 1 being a follower.
 public class ShooterSubsystem extends SubsystemBase {
   private final Spark shooterMotor;
 
@@ -13,5 +12,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public void setShooterSpeed(double speed) {
     shooterMotor.set(speed);
+  }
+
+  public void stopShooter() {
+    shooterMotor.stopMotor();
   }
 }

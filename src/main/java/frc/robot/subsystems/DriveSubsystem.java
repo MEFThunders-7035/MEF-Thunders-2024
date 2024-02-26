@@ -2,12 +2,12 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
@@ -52,16 +51,16 @@ public class DriveSubsystem extends SubsystemBase {
           SwerveModuleConstants.kBackRightChassisAngularOffset);
 
   // Slew rate filter variables for controlling lateral acceleration
-  private double m_currentRotation = 0.0;
-  private double m_currentTranslationDir = 0.0;
-  private double m_currentTranslationMag = 0.0;
+  private double currentRotation = 0.0;
+  private double currentTranslationDir = 0.0;
+  private double currentTranslationMag = 0.0;
 
-  private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
-  private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
-  private double m_prevTime = WPIUtilJNI.now() * 1e-6;
+  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
+  private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
+  private double prevTime = WPIUtilJNI.now() * 1e-6;
 
-  SwerveDriveOdometry swerveOdometry =
-      new SwerveDriveOdometry(
+  SwerveDrivePoseEstimator swerveOdometry =
+      new SwerveDrivePoseEstimator(
           SwerveModuleConstants.kDriveKinematics,
           Rotation2d.fromDegrees(navX.getAngle()),
           new SwerveModulePosition[] {
@@ -69,7 +68,8 @@ public class DriveSubsystem extends SubsystemBase {
             frontRight.getPosition(),
             rearLeft.getPosition(),
             rearRight.getPosition()
-          });
+          },
+          new Pose2d());
 
   public DriveSubsystem() {
     // Do nothing
@@ -85,12 +85,23 @@ public class DriveSubsystem extends SubsystemBase {
           rearLeft.getPosition(),
           rearRight.getPosition()
         });
-    field.setRobotPose(swerveOdometry.getPoseMeters());
+    field.setRobotPose(swerveOdometry.getEstimatedPosition());
+    updatePoseWithVision();
     SmartDashboard.putData(field);
   }
 
+  private void updatePoseWithVision() {
+    var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
+    if (poseOpt.isPresent()
+        && poseOpt.get().estimatedPose.toPose2d().relativeTo(getPose()).getTranslation().getNorm()
+            < 1.0) /* Only trust the vision if it's close to the current pose */ {
+      swerveOdometry.addVisionMeasurement(
+          poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
+    }
+  }
+
   public Pose2d getPose() {
-    return swerveOdometry.getPoseMeters();
+    return swerveOdometry.getEstimatedPosition();
   }
 
   public void resetOdometry(Pose2d pose) {
@@ -126,53 +137,53 @@ public class DriveSubsystem extends SubsystemBase {
 
       // Calculate the direction slew rate based on an estimate of the lateral acceleration
       double directionSlewRate;
-      if (m_currentTranslationMag != 0.0) {
-        directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / m_currentTranslationMag);
+      if (currentTranslationMag != 0.0) {
+        directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / currentTranslationMag);
       } else {
         directionSlewRate = 500.0; // some high number that means the slew rate is effectively
         // instantaneous
       }
 
       double currentTime = WPIUtilJNI.now() * 1e-6;
-      double elapsedTime = currentTime - m_prevTime;
-      double angleDif = SwerveUtils.AngleDifference(inputTranslationDir, m_currentTranslationDir);
+      double elapsedTime = currentTime - prevTime;
+      double angleDif = SwerveUtils.AngleDifference(inputTranslationDir, currentTranslationDir);
       if (angleDif < 0.45 * Math.PI) {
-        m_currentTranslationDir =
+        currentTranslationDir =
             SwerveUtils.StepTowardsCircular(
-                m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
+                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+        currentTranslationMag = magLimiter.calculate(inputTranslationMag);
       } else if (angleDif > 0.85 * Math.PI) {
-        if (m_currentTranslationMag
+        if (currentTranslationMag
             > 1e-4) { // some small number to avoid floating-point errors with equality
           // checking
           // keep currentTranslationDir unchanged
-          m_currentTranslationMag = m_magLimiter.calculate(0.0);
+          currentTranslationMag = magLimiter.calculate(0.0);
         } else {
-          m_currentTranslationDir = SwerveUtils.WrapAngle(m_currentTranslationDir + Math.PI);
-          m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
+          currentTranslationDir = SwerveUtils.WrapAngle(currentTranslationDir + Math.PI);
+          currentTranslationMag = magLimiter.calculate(inputTranslationMag);
         }
       } else {
-        m_currentTranslationDir =
+        currentTranslationDir =
             SwerveUtils.StepTowardsCircular(
-                m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        m_currentTranslationMag = m_magLimiter.calculate(0.0);
+                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+        currentTranslationMag = magLimiter.calculate(0.0);
       }
-      m_prevTime = currentTime;
+      prevTime = currentTime;
 
-      xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir);
-      ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir);
-      m_currentRotation = m_rotLimiter.calculate(rot);
+      xSpeedCommanded = currentTranslationMag * Math.cos(currentTranslationDir);
+      ySpeedCommanded = currentTranslationMag * Math.sin(currentTranslationDir);
+      currentRotation = rotLimiter.calculate(rot);
 
     } else {
       xSpeedCommanded = xSpeed;
       ySpeedCommanded = ySpeed;
-      m_currentRotation = rot;
+      currentRotation = rot;
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain
     double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-    double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+    double rotDelivered = currentRotation * DriveConstants.kMaxAngularSpeed;
 
     var swerveModuleStates =
         SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(
@@ -252,20 +263,19 @@ public class DriveSubsystem extends SubsystemBase {
    * Drives the robot with the given Controller.
    *
    * <p>This is a convenience method for {@link #drive(double, double, double, double, double,
-   * boolean, boolean)}. And it handles the deadband and boost.
+   * boolean, boolean)}. It's made to handle the deadband and boost.
    *
    * @param controller The controller to drive with.
    * @return The command to drive the robot.
    */
   public Command defaultDriveCommand(XboxController controller) {
-    return new RunCommand(
+    return run(
         () ->
             driveWithExtras(
                 controller.getLeftY(),
                 controller.getLeftX(),
                 -controller.getRightX(),
-                controller.getRightTriggerAxis()),
-        this);
+                controller.getRightTriggerAxis()));
   }
 
   /** This will handle adding Deadband, and adding boost to the drive. */
@@ -282,8 +292,8 @@ public class DriveSubsystem extends SubsystemBase {
         MathUtil.applyDeadband(xSpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(ySpeed * (sens + (boost * (1 - sens))), deadband),
         MathUtil.applyDeadband(rot * sens, deadband),
-        true,
-        true);
+        fieldRelative,
+        rateLimit);
   }
 
   public void driveWithExtras(

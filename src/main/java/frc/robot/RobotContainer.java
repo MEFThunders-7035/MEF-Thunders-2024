@@ -10,6 +10,7 @@ import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.commands.TestAutoCommand;
+import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -29,6 +30,10 @@ public class RobotContainer {
     configureBindings();
     setDefaultCommands();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
+  }
+
+  public void simPeriodic() {
+    PhotonSim.update(driveSubsystem.getPose());
   }
 
   private void setDefaultCommands() {

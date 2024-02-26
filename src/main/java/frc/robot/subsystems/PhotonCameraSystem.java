@@ -36,6 +36,15 @@ public final class PhotonCameraSystem {
   }
 
   /**
+   * You should never need this, but is here for simulating the camera.
+   *
+   * @return the camera object the system is using.
+   */
+  public static PhotonCamera getCamera() {
+    return camera;
+  }
+
+  /**
    * This is used for a Target that you know the height of. If the target is not found, it will
    * return empty. It also won't check if the target is actually the target you are looking for. It
    * will just return the distance to the first target it sees.

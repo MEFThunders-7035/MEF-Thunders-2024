@@ -36,6 +36,10 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 
+  public void simPeriodic() {
+    PhotonSim.update(driveSubsystem.getPose());
+  }
+
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
     intakeSubsystem.setDefaultCommand(

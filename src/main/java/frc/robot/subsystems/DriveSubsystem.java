@@ -6,12 +6,12 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -64,8 +64,8 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double prevTime = WPIUtilJNI.now() * 1e-6;
 
-  SwerveDriveOdometry swerveOdometry =
-      new SwerveDriveOdometry(
+  SwerveDrivePoseEstimator swerveOdometry =
+      new SwerveDrivePoseEstimator(
           SwerveModuleConstants.kDriveKinematics,
           Rotation2d.fromDegrees(navX.getAngle()),
           new SwerveModulePosition[] {
@@ -73,7 +73,8 @@ public class DriveSubsystem extends SubsystemBase {
             frontRight.getPosition(),
             rearLeft.getPosition(),
             rearRight.getPosition()
-          });
+          },
+          new Pose2d());
 
   public DriveSubsystem() {
     // Do nothing
@@ -119,12 +120,23 @@ public class DriveSubsystem extends SubsystemBase {
           rearLeft.getPosition(),
           rearRight.getPosition()
         });
-    field.setRobotPose(swerveOdometry.getPoseMeters());
+    field.setRobotPose(swerveOdometry.getEstimatedPosition());
+    updatePoseWithVision();
     SmartDashboard.putData(field);
   }
 
+  private void updatePoseWithVision() {
+    var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
+    if (poseOpt.isPresent()
+        && poseOpt.get().estimatedPose.toPose2d().relativeTo(getPose()).getTranslation().getNorm()
+            < 1.0) /* Only trust the vision if it's close to the current pose */ {
+      swerveOdometry.addVisionMeasurement(
+          poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
+    }
+  }
+
   public Pose2d getPose() {
-    return swerveOdometry.getPoseMeters();
+    return swerveOdometry.getEstimatedPosition();
   }
 
   public void resetOdometry(Pose2d pose) {

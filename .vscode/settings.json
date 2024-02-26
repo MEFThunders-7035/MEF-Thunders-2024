@@ -15,17 +15,20 @@
     ]
   },
   "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "bin/": true,
+    ".wpilib": true,
     "**/.classpath": true,
+    "**/.DS_Store": true,
+    "**/.factorypath": true,
+    "**/.git": true,
+    "**/.hg": true,
     "**/.project": true,
     "**/.settings": true,
-    "**/.factorypath": true,
-    "**/*~": true
+    "**/.svn": true,
+    "**/*~": true,
+    "**/CVS": true,
+    "bin/": true,
+    "build/": true,
+    "gradle/": true
   },
   "java.test.config": [
     {

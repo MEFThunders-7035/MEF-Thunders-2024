@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.DataTypes.CameraDetails;
 
 public final class Constants {
@@ -129,15 +128,14 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
-    public static final int kArmMotorCanID = 9;
-    public static final int kIntakeMotorCanID = 10;
+    public static final int kIntakeMotorCanID = 9;
+    public static final int kArmMotorCanID = 10;
+    public static final int kArmFollowerMotorCanID = 11;
 
     public static final IdleMode kArmMotorIdleMode = IdleMode.kCoast;
 
     public static final class ColorSensorConstants {
       public static final I2C.Port kColorSensorPort = I2C.Port.kMXP; // Connected to the NavX MXP
-
-      public static final Color kCheckColor = new Color(200, 100, 0); // Color OF Note: Red - Orange
     }
 
     public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.

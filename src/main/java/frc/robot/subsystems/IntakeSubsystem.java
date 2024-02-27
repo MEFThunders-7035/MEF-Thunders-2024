@@ -26,6 +26,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   @Override
   public void close() {
     intake.close();
+    colorSensor.close();
   }
 
   public boolean hasNote() {

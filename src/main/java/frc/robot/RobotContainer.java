@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -31,11 +33,23 @@ public class RobotContainer {
     configureBindings();
     setDefaultCommands();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
+    if (RobotBase.isSimulation()) {
+      simInit();
+    }
   }
 
-  public void simPeriodic() {
-    PhotonSim.update(driveSubsystem.getPose());
+  public void simInit() {
+    new Thread(
+            () -> {
+              for (; ; ) {
+                PhotonSim.update(driveSubsystem.getPose());
+                Timer.delay(0.02);
+              }
+            })
+        .start();
   }
+
+  public void simPeriodic() {}
 
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));

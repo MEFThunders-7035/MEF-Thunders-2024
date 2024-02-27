@@ -67,7 +67,7 @@ public class ArmSubsystem extends SubsystemBase {
    *
    * @apiNote YOU SHOULD NOT USE THIS METHOD UNLESS NECESSARY! USE THE PID CONTROLLER INSTEAD.
    */
-  public void setArmToZero() {
+  public void stopArm() {
     arm.set(0);
   }
 

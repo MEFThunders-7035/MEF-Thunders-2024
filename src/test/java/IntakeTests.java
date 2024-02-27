@@ -33,6 +33,15 @@ class IntakeTests {
   }
 
   @Test
+  void testIntakeNoteDetected() {
+    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    assertEquals(true, intakeSubsystem.hasNote(), "Intake should detect a note");
+    ColorSensorV3Wrapped.setRGBD(0, 0, 0, 0);
+    assertEquals(false, intakeSubsystem.hasNote(), "Intake should not detect a note");
+    // TODO: Add more tests for different RGBD values
+  }
+
+  @Test
   void testIntakeSubsystemWithNote() {
     ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
     intakeSubsystem.setIntakeSpeed(0.5);

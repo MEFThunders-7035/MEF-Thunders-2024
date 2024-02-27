@@ -4,8 +4,10 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
 import frc.robot.commands.VibrateControllerCommand;
@@ -62,7 +64,9 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command vibrateControllerOnNoteCommand(XboxController controller) {
-    return new VibrateControllerCommand(controller, 2, 1, 0.2);
+    return new VibrateControllerCommand(controller, 2, 1, 0.1)
+        .alongWith(new PrintCommand("Note!"))
+        .beforeStarting(new WaitUntilCommand(this::hasNote));
   }
 
   @Override

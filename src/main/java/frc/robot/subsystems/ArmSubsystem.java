@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -69,6 +70,10 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void stopArm() {
     arm.set(0);
+  }
+
+  public boolean isArmAtPosition(double position) {
+    return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
   /**

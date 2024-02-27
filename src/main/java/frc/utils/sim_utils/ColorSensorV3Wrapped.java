@@ -23,6 +23,11 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
       return;
     }
     colorSensor = null;
+
+    // Clear the RGBD values
+    for (int i = 0; i < rgbd.length; i++) {
+      rgbd[i] = 0;
+    }
   }
 
   /**

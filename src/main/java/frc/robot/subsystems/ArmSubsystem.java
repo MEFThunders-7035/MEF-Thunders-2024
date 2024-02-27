@@ -7,6 +7,7 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkRelativeEncoder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
@@ -94,6 +95,21 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void setArmToPosition(int positionDegrees) {
     setArmToPosition(positionDegrees / 360.0);
+  }
+
+  public Command setArmToPositionCommand(double position) {
+    return this.run(() -> this.setArmToPosition(position))
+        .onlyWhile(() -> !this.isArmAtPosition(position));
+  }
+
+  /**
+   * Sets the arm to a given position.
+   *
+   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
+   * @return A command that will set the arm to the given position.
+   */
+  public Command setArmToPositionCommand(int positionDegrees) {
+    return this.setArmToPositionCommand(positionDegrees / 360.0);
   }
 
   public void setArmToAprilTag() {

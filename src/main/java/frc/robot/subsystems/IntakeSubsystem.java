@@ -19,6 +19,17 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
   public IntakeSubsystem() {
     intake = new CANSparkMAXWrapped(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
+    setupIntakeMotor();
+  }
+
+  private void setupIntakeMotor() {
+    intake.restoreFactoryDefaults();
+
+    intake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
+
+    intake.setIdleMode(IntakeConstants.kIntakeMotorIdleMode);
+
+    intake.burnFlash();
   }
 
   @Override

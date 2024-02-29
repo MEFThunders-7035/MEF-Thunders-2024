@@ -132,7 +132,8 @@ public final class Constants {
     public static final int kArmMotorCanID = 10;
     public static final int kArmFollowerMotorCanID = 11;
 
-    public static final IdleMode kArmMotorIdleMode = IdleMode.kCoast;
+    public static final IdleMode kArmMotorIdleMode = IdleMode.kBrake;
+    public static final IdleMode kIntakeMotorIdleMode = IdleMode.kBrake;
 
     public static final class ColorSensorConstants {
       public static final I2C.Port kColorSensorPort = I2C.Port.kMXP; // Connected to the NavX MXP

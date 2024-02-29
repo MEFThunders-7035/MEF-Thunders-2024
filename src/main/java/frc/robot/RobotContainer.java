@@ -1,5 +1,8 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -19,6 +22,7 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
   private final XboxController controller = new XboxController(0);
@@ -30,6 +34,7 @@ public class RobotContainer {
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
+    loggingInit();
     configureBindings();
     setDefaultCommands();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
@@ -38,18 +43,37 @@ public class RobotContainer {
     }
   }
 
-  public void simInit() {
-    new Thread(
-            () -> {
-              for (; ; ) {
-                PhotonSim.update(driveSubsystem.getPose());
-                Timer.delay(0.02);
-              }
-            })
-        .start();
+  private void loggingInit() {
+    DataLogManager.start();
+    URCL.start();
+    DriverStation.startDataLog(DataLogManager.getLog());
   }
 
-  public void simPeriodic() {}
+  private Thread simThread;
+
+  public void simInit() {
+    simThread =
+        new Thread(
+            () -> {
+              System.out.println("Starting PhotonSim");
+              while (true) {
+                PhotonSim.update(new Pose2d());
+                // I do not want to use a busy loop, so I added a delay.
+                Timer.delay(0.2);
+              }
+            },
+            "simThread");
+    simThread.setDaemon(true);
+    simThread.start();
+  }
+
+  public void simPeriodic() {
+    if (!simThread.isAlive()) {
+      simInit();
+    }
+    // add any simulation specific code here.
+    // was made for photonSim, but it's not used.
+  }
 
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
@@ -83,7 +107,8 @@ public class RobotContainer {
         .onTrue(
             driveSubsystem
                 .runOnce(driveSubsystem::zeroHeading)
-                .alongWith(new PrintCommand("Zeroing Heading")));
+                .alongWith(new PrintCommand("Zeroing Heading"))
+                .ignoringDisable(true));
 
     // This command is here incase the intake gets stuck.
     new JoystickButton(controller, Button.kBack.value) // Force push note out of intake

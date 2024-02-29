@@ -46,6 +46,7 @@
     "AHRS",
     "Brushless",
     "Deadband",
+    "Feedforward",
     "intaking",
     "Odometry",
     "Roborio",

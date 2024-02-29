@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -8,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.commands.TestAutoCommand;
 import frc.robot.simulationSystems.PhotonSim;
@@ -30,11 +33,23 @@ public class RobotContainer {
     configureBindings();
     setDefaultCommands();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
+    if (RobotBase.isSimulation()) {
+      simInit();
+    }
   }
 
-  public void simPeriodic() {
-    PhotonSim.update(driveSubsystem.getPose());
+  public void simInit() {
+    new Thread(
+            () -> {
+              for (; ; ) {
+                PhotonSim.update(driveSubsystem.getPose());
+                Timer.delay(0.02);
+              }
+            })
+        .start();
   }
+
+  public void simPeriodic() {}
 
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
@@ -52,11 +67,7 @@ public class RobotContainer {
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
     new JoystickButton(controller, Button.kB.value) // Intake
-        .whileTrue(
-            new RunCommand(
-                    () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
-                    intakeSubsystem)
-                .alongWith(intakeSubsystem.vibrateControllerOnNoteCommand(controller)));
+        .whileTrue(new SmartIntakeCommand(intakeSubsystem, armSubsystem, controller));
 
     // TODO: DEPRECATED, REMOVE
     new JoystickButton(controller, Button.kX.value) // Shoot, basic (Run Shooter)

@@ -118,7 +118,7 @@ public final class Constants {
     public static final IdleMode kTurningMotorIdleMode = IdleMode.kBrake;
 
     public static final int kDrivingMotorCurrentLimit = 50; // amps
-    public static final int kTurningMotorCurrentLimit = 20; // amps
+    public static final int kTurningMotorCurrentLimit = 30; // amps
   }
 
   public static final class OIConstants {
@@ -152,6 +152,14 @@ public final class Constants {
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double kFF = 0.0;
+
+      // Feedforward gains
+      // ! TODO: TUNE
+      public static final double kS = 0.0;
+      public static final double kG = 0.0;
+      public static final double kV = 0.0;
+
+      public static final double kAllowedError = 0.05;
     }
   }
 
@@ -176,6 +184,11 @@ public final class Constants {
               new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
               new Rotation3d(0, kCameraPitchRadians, 0));
     }
+  }
+
+  public static final class LEDConstants {
+    public static final int kLedPin = 9;
+    public static final int kLedCount = 50;
   }
 
   public static final class AutoConstants {

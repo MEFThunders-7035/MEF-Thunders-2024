@@ -5,10 +5,13 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkRelativeEncoder;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -18,6 +21,7 @@ public class ArmSubsystem extends SubsystemBase {
   private final CANSparkMAXWrapped armFollower;
   private final RelativeEncoder encoder;
   private final SparkPIDController pidController;
+  private final ArmFeedforward feedforward;
 
   public ArmSubsystem() {
     arm = new CANSparkMAXWrapped(IntakeConstants.kArmMotorCanID, MotorType.kBrushed);
@@ -26,6 +30,7 @@ public class ArmSubsystem extends SubsystemBase {
     armFollower.follow(arm, true); // Inverted
     encoder = arm.getEncoder(SparkRelativeEncoder.Type.kQuadrature, IntakeConstants.kArmEncoderCPR);
     pidController = arm.getPIDController();
+    feedforward = new ArmFeedforward(ArmPIDConstants.kS, ArmPIDConstants.kG, ArmPIDConstants.kV);
 
     setupSparkMax();
   }
@@ -67,8 +72,12 @@ public class ArmSubsystem extends SubsystemBase {
    *
    * @apiNote YOU SHOULD NOT USE THIS METHOD UNLESS NECESSARY! USE THE PID CONTROLLER INSTEAD.
    */
-  public void setArmToZero() {
+  public void stopArm() {
     arm.set(0);
+  }
+
+  public boolean isArmAtPosition(double position) {
+    return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
   /**
@@ -78,7 +87,8 @@ public class ArmSubsystem extends SubsystemBase {
    * @see #setArmToPosition(int)
    */
   public void setArmToPosition(double position) {
-    pidController.setReference(position, ControlType.kPosition);
+    pidController.setReference(
+        position, ControlType.kPosition, 0, feedforward.calculate(position, encoder.getVelocity()));
   }
 
   /**
@@ -89,6 +99,21 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void setArmToPosition(int positionDegrees) {
     setArmToPosition(positionDegrees / 360.0);
+  }
+
+  public Command setArmToPositionCommand(double position) {
+    return this.run(() -> this.setArmToPosition(position))
+        .onlyWhile(() -> !this.isArmAtPosition(position));
+  }
+
+  /**
+   * Sets the arm to a given position.
+   *
+   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
+   * @return A command that will set the arm to the given position.
+   */
+  public Command setArmToPositionCommand(int positionDegrees) {
+    return this.setArmToPositionCommand(positionDegrees / 360.0);
   }
 
   public void setArmToAprilTag() {

@@ -51,6 +51,7 @@
     "Odometry",
     "Roborio",
     "setpoint",
-    "setpoints"
+    "setpoints",
+    "URCL"
   ]
 }

@@ -18,7 +18,7 @@ class IntakeTests {
   public void setUp() {
     HAL.initialize(500, 0);
     intakeSubsystem = new IntakeSubsystem();
-    intakeMotor = SparkMAXSimAddon.getSparkMAX(IntakeConstants.kIntakeMotorCanID);
+    intakeMotor = SparkMAXSimAddon.getSparkMAX(IntakeConstants.kArmIntakeMotorCanID);
   }
 
   @AfterEach

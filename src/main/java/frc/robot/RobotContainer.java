@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -26,6 +27,7 @@ import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
   private final XboxController controller = new XboxController(0);
+  private final GenericHID midiController = new GenericHID(1);
 
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
@@ -69,7 +71,8 @@ public class RobotContainer {
 
   public void simPeriodic() {
     if (!simThread.isAlive()) {
-      simInit();
+      simInit(); // If the thread dies, restart it.
+      // This is here because sometimes the thread throws an exception and dies.
     }
     // add any simulation specific code here.
     // was made for photonSim, but it's not used.
@@ -83,7 +86,9 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(
         new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
 
-    armSubsystem.setDefaultCommand(new RunCommand(armSubsystem::setArmToAprilTag, armSubsystem));
+    armSubsystem.setDefaultCommand(
+        new RunCommand(
+            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0)), armSubsystem));
   }
 
   private void configureBindings() {
@@ -97,11 +102,15 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kX.value) // Shoot, basic (Run Shooter)
         .whileTrue(
             new RunCommand(
-                () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
-                shooterSubsystem));
+                    () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
+                    shooterSubsystem)
+                .alongWith(armSubsystem.setArmToPositionCommand(0.5)));
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
+
+    new JoystickButton(controller, Button.kLeftBumper.value) // Reverse Intake
+        .whileTrue(new RunCommand(() -> intakeSubsystem.setIntakeSpeed(1, true), intakeSubsystem));
 
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
@@ -116,6 +125,9 @@ public class RobotContainer {
             new RunCommand(
                 () -> intakeSubsystem.setIntakeSpeed(-IntakeConstants.kIntakeSpeed),
                 intakeSubsystem));
+
+    new JoystickButton(controller, Button.kRightBumper.value)
+        .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
   }
 
   public Command getAutonomousCommand() {

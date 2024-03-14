@@ -147,14 +147,14 @@ public final class PhotonCameraSystem {
    * @param id The id of the aprilTag you want to find.
    * @return The PhotonTrackedTarget with the given id. If no target is found, it will return null.
    */
-  public static PhotonTrackedTarget getAprilTagWithID(int id) {
+  public static Optional<PhotonTrackedTarget> getAprilTagWithID(int id) {
     var targets = getTrackedTargets();
     for (var target : targets) {
       if (target.getFiducialId() == id) {
-        return target;
+        return Optional.of(target);
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   /**

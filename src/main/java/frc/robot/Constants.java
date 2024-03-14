@@ -128,7 +128,8 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
-    public static final int kIntakeMotorCanID = 9;
+    public static final int kArmIntakeMotorCanID = 9;
+    public static final int kGroundIntakeMotorCanID = 13;
     public static final int kArmMotorCanID = 10;
     public static final int kArmFollowerMotorCanID = 11;
 
@@ -140,17 +141,17 @@ public final class Constants {
     }
 
     public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.
-    public static final double kArmEncoderGearAmount = 1; // TODO: CHANGE THIS WHEN WE GET THE GEAR
+    public static final double kArmEncoderGearAmount = (64 / 14.0) * (10.71);
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
 
-    public static final double kIntakeSpeed = 1;
+    public static final double kIntakeSpeed = 0.4;
 
     public static final class ArmPIDConstants {
       // TODO: Tune these values
-      public static final double kP = 0.2;
-      public static final double kI = 0.0;
-      public static final double kD = 0.0;
+      public static final double kP = 4.5;
+      public static final double kI = 0;
+      public static final double kD = 2;
       public static final double kFF = 0.0;
 
       // Feedforward gains
@@ -159,7 +160,7 @@ public final class Constants {
       public static final double kG = 0.0;
       public static final double kV = 0.0;
 
-      public static final double kAllowedError = 0.05;
+      public static final double kAllowedError = 0.01;
     }
   }
 
@@ -169,7 +170,7 @@ public final class Constants {
     public static final int kShooter1CanID = 11;
     public static final int kShooter2CanID = 12;
 
-    public static final double kShooterSpeed = 0.6;
+    public static final double kShooterSpeed = 1;
   }
 
   public static final class CameraConstants {

@@ -6,6 +6,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -75,7 +76,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   StructArrayPublisher<SwerveModuleState> publisher =
       NetworkTableInstance.getDefault()
-          .getStructArrayTopic("MyStates", SwerveModuleState.struct)
+          .getStructArrayTopic("Swerve", SwerveModuleState.struct)
           .publish();
 
   public DriveSubsystem() {
@@ -84,15 +85,16 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    swerveOdometry.update(
-        Rotation2d.fromDegrees(navX.getAngle()),
-        new SwerveModulePosition[] {
-          frontLeft.getPosition(),
-          frontRight.getPosition(),
-          rearLeft.getPosition(),
-          rearRight.getPosition()
-        });
-    field.setRobotPose(swerveOdometry.getEstimatedPosition());
+    var pose =
+        swerveOdometry.update(
+            Rotation2d.fromDegrees(navX.getAngle()),
+            new SwerveModulePosition[] {
+              frontLeft.getPosition(),
+              frontRight.getPosition(),
+              rearLeft.getPosition(),
+              rearRight.getPosition()
+            });
+    field.setRobotPose(pose);
     updatePoseWithVision();
     SmartDashboard.putData(field);
     publisher.set(
@@ -103,12 +105,31 @@ public class DriveSubsystem extends SubsystemBase {
 
   private void updatePoseWithVision() {
     var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
-    if (poseOpt.isPresent()
-        && poseOpt.get().estimatedPose.toPose2d().relativeTo(getPose()).getTranslation().getNorm()
-            < 1.0) /* Only trust the vision if it's close to the current pose */ {
+    SmartDashboard.putBoolean("AprilTag Seen", poseOpt.isPresent());
+    if (poseOpt.isPresent()) {
       swerveOdometry.addVisionMeasurement(
           poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
     }
+    var shooterTarget = PhotonCameraSystem.getAprilTagWithID(7); // blue shooter
+    SmartDashboard.putNumber(
+        "Distance To Shooter",
+        shooterTarget.isPresent()
+            ? shooterTarget
+                .get()
+                .getBestCameraToTarget()
+                .getTranslation()
+                .toTranslation2d()
+                .getDistance(new Translation2d())
+            : 0);
+
+    var tag = PhotonCameraSystem.getFieldLayout().getTagPose(7);
+    if (tag.isEmpty()) return;
+    SmartDashboard.putNumber(
+        "Distance To Shooter 2",
+        tag.get()
+            .getTranslation()
+            .toTranslation2d()
+            .getDistance(swerveOdometry.getEstimatedPosition().getTranslation()));
   }
 
   public Pose2d getPose() {

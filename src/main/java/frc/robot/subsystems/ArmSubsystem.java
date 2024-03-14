@@ -106,7 +106,7 @@ public class ArmSubsystem extends SubsystemBase {
 
   public Command setArmToPositionCommand(double position) {
     return this.run(() -> this.setArmToPosition(position))
-        .onlyWhile(() -> !this.isArmAtPosition(position));
+        .until(() -> this.isArmAtPosition(position));
   }
 
   /**
@@ -126,13 +126,13 @@ public class ArmSubsystem extends SubsystemBase {
 
     var target = PhotonCameraSystem.getAprilTagWithID(idToTrack);
 
-    if (target == null) {
+    if (target.isEmpty()) {
       return;
     }
 
-    double distance = target.getArea(); // will be from 0 to 100. (Hopefully?)
+    double distance = target.get().getArea(); // will be from 0 to 100. (Hopefully?)
 
-    double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.1, 0.05); // between 10 and 20 deg
+    double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.2, 0.05); // between 10 and 20 deg
 
     setArmToPosition(armAngle);
   }

@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,28 +17,38 @@ import frc.utils.sim_utils.CANSparkMAXWrapped;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;
 
 public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
-  private final CANSparkMAXWrapped intake;
+  private final CANSparkMAXWrapped armIntake;
+  private final CANSparkMAXWrapped groundIntake;
   private final ColorSensorV3Wrapped colorSensor =
       new ColorSensorV3Wrapped(ColorSensorConstants.kColorSensorPort);
 
   public IntakeSubsystem() {
-    intake = new CANSparkMAXWrapped(IntakeConstants.kIntakeMotorCanID, MotorType.kBrushless);
+    armIntake = new CANSparkMAXWrapped(IntakeConstants.kArmIntakeMotorCanID, MotorType.kBrushless);
+    groundIntake =
+        new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushed);
     setupIntakeMotor();
+
+    new Thread(this::fastPeriodic, "Fast Color Check Loop").start();
   }
 
   private void setupIntakeMotor() {
-    intake.restoreFactoryDefaults();
+    armIntake.restoreFactoryDefaults();
+    groundIntake.restoreFactoryDefaults();
 
-    intake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
+    armIntake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
+    armIntake.setInverted(true);
+    groundIntake.setInverted(true);
 
-    intake.setIdleMode(IntakeConstants.kIntakeMotorIdleMode);
+    armIntake.setIdleMode(IntakeConstants.kIntakeMotorIdleMode);
+    groundIntake.setIdleMode(IdleMode.kCoast);
 
-    intake.burnFlash();
+    armIntake.burnFlash();
+    groundIntake.burnFlash();
   }
 
   @Override
   public void close() {
-    intake.close();
+    armIntake.close();
     colorSensor.close();
   }
 
@@ -52,27 +64,34 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
     return colorSensor.getProximity() > 700
         && red > 2000
-        && blue < 2500
+        && blue < 9000
         && red > colorSensor.getGreen();
   }
 
-  public void setIntakeSpeed(double speed) {
-    if (speed > 0 && hasNote()) { // If we are intaking, check if we have a note.
-      intake.set(0);
+  public void setIntakeSpeed(double speed, boolean force) {
+    if (speed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
+      armIntake.set(0);
+      groundIntake.set(0);
       return;
     }
 
-    intake.set(speed);
+    armIntake.set(speed);
+    groundIntake.set(speed);
+  }
+
+  public void setIntakeSpeed(double speed) {
+    setIntakeSpeed(speed, false);
   }
 
   public void checkIfHasNote() {
-    if (hasNote() && intake.get() > 0) {
-      intake.set(0);
+    if (hasNote() && armIntake.get() > 0) {
+      armIntake.set(0);
     }
   }
 
   public Command loadToShooterCommand() {
-    return new RunCommand(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed)).until(this::hasNote);
+    return new RunCommand(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, true))
+        .until(() -> !hasNote());
   }
 
   public Command vibrateControllerOnNoteCommand(XboxController controller) {
@@ -89,7 +108,10 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
     SmartDashboard.putBoolean("Note Detected", hasNote());
+  }
 
+  private void fastPeriodic() {
     checkIfHasNote();
+    Timer.delay(0.005);
   }
 }

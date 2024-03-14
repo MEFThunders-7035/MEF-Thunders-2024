@@ -10,6 +10,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -71,6 +73,11 @@ public class DriveSubsystem extends SubsystemBase {
           },
           new Pose2d());
 
+  StructArrayPublisher<SwerveModuleState> publisher =
+      NetworkTableInstance.getDefault()
+          .getStructArrayTopic("MyStates", SwerveModuleState.struct)
+          .publish();
+
   public DriveSubsystem() {
     // Do nothing
   }
@@ -88,6 +95,10 @@ public class DriveSubsystem extends SubsystemBase {
     field.setRobotPose(swerveOdometry.getEstimatedPosition());
     updatePoseWithVision();
     SmartDashboard.putData(field);
+    publisher.set(
+        new SwerveModuleState[] {
+          frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
+        });
   }
 
   private void updatePoseWithVision() {

@@ -23,12 +23,13 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public final class PhotonCameraSystem {
   private static PhotonCamera camera = new PhotonCamera(PiCamera.cameraName);
   private static PhotonPoseEstimator photonPoseEstimator = getPhotonPoseEstimator();
+  private static AprilTagFieldLayout fieldLayout;
 
   private static int loadTry = 0;
 
   private static PhotonPoseEstimator getPhotonPoseEstimator() {
     // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
-    AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+    fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
     // Create pose estimator
     photonPoseEstimator =
         new PhotonPoseEstimator(
@@ -45,6 +46,10 @@ public final class PhotonCameraSystem {
    */
   public static PhotonCamera getCamera() {
     return camera;
+  }
+
+  public static AprilTagFieldLayout getFieldLayout() {
+    return fieldLayout;
   }
 
   /**

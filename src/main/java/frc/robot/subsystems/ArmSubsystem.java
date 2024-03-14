@@ -28,6 +28,7 @@ public class ArmSubsystem extends SubsystemBase {
     armFollower =
         new CANSparkMAXWrapped(IntakeConstants.kArmFollowerMotorCanID, MotorType.kBrushed);
     armFollower.follow(arm, true); // Inverted
+    arm.restoreFactoryDefaults();
     encoder = arm.getEncoder(SparkRelativeEncoder.Type.kQuadrature, IntakeConstants.kArmEncoderCPR);
     pidController = arm.getPIDController();
     feedforward = new ArmFeedforward(ArmPIDConstants.kS, ArmPIDConstants.kG, ArmPIDConstants.kV);
@@ -41,9 +42,8 @@ public class ArmSubsystem extends SubsystemBase {
    * This method is here incase we want to switch to a different motor controller.
    */
   private void setupSparkMax() {
-
+    arm.setInverted(false);
     encoder.setPositionConversionFactor(IntakeConstants.kArmEncoderPositionFactor);
-    encoder.setInverted(true);
     pidController.setFeedbackDevice(encoder);
 
     pidController.setP(IntakeConstants.ArmPIDConstants.kP);

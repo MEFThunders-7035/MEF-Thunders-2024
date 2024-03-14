@@ -88,7 +88,10 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void setArmToPosition(double position) {
     pidController.setReference(
-        position, ControlType.kPosition, 0, feedforward.calculate(position, encoder.getVelocity()));
+        position,
+        ControlType.kPosition,
+        0,
+        feedforward.calculate(position, Math.abs(encoder.getPosition() - position)));
   }
 
   /**

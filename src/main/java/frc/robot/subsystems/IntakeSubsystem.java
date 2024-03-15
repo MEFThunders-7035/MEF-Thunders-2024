@@ -49,6 +49,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   @Override
   public void close() {
     armIntake.close();
+    groundIntake.close();
     colorSensor.close();
   }
 

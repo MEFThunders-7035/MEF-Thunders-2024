@@ -80,6 +80,14 @@ public class ArmSubsystem extends SubsystemBase {
     return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
+  public void resetEncoder() {
+    encoder.setPosition(0);
+  }
+
+  public void resetEncoder(double position) {
+    encoder.setPosition(position);
+  }
+
   /**
    * Sets the arm to a given position.
    *

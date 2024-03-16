@@ -65,7 +65,7 @@ public class DriveSubsystem extends SubsystemBase {
   SwerveDrivePoseEstimator swerveOdometry =
       new SwerveDrivePoseEstimator(
           SwerveModuleConstants.kDriveKinematics,
-          Rotation2d.fromDegrees(navX.getAngle()),
+          getRotation2d(),
           new SwerveModulePosition[] {
             frontLeft.getPosition(),
             frontRight.getPosition(),
@@ -97,7 +97,7 @@ public class DriveSubsystem extends SubsystemBase {
     field.setRobotPose(pose);
     updatePoseWithVision();
     SmartDashboard.putData(field);
-    SmartDashboard.putNumber("Rotation", navX.getRotation2d().getDegrees());
+    SmartDashboard.putNumber("Rotation", getHeading());
     publisher.set(
         new SwerveModuleState[] {
           frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
@@ -139,7 +139,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void resetOdometry(Pose2d pose) {
     swerveOdometry.resetPosition(
-        Rotation2d.fromDegrees(navX.getAngle()),
+        getRotation2d(),
         new SwerveModulePosition[] {
           frontLeft.getPosition(),
           frontRight.getPosition(),

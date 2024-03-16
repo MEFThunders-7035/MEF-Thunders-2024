@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.commands.TestAutoCommand;
@@ -81,14 +80,18 @@ public class RobotContainer {
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
     intakeSubsystem.setDefaultCommand(
-        new RunCommand(() -> intakeSubsystem.setIntakeSpeed(0), intakeSubsystem));
+        new RunCommand(
+            () -> intakeSubsystem.setIntakeSpeed(midiController.getRawAxis(1)), intakeSubsystem));
 
     shooterSubsystem.setDefaultCommand(
-        new RunCommand(() -> shooterSubsystem.setShooterSpeed(0), shooterSubsystem));
+        new RunCommand(
+            () -> shooterSubsystem.setShooterSpeed(midiController.getRawAxis(2)),
+            shooterSubsystem));
 
+    // move arm with midi's potentiometer
     armSubsystem.setDefaultCommand(
         new RunCommand(
-            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0)), armSubsystem));
+            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0) / 2.0), armSubsystem));
   }
 
   private void configureBindings() {
@@ -98,19 +101,12 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kB.value) // Intake
         .whileTrue(new SmartIntakeCommand(intakeSubsystem, armSubsystem, controller));
 
-    // TODO: DEPRECATED, REMOVE
-    new JoystickButton(controller, Button.kX.value) // Shoot, basic (Run Shooter)
-        .whileTrue(
-            new RunCommand(
-                    () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed),
-                    shooterSubsystem)
-                .alongWith(armSubsystem.setArmToPositionCommand(0.5)));
-
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
 
-    new JoystickButton(controller, Button.kLeftBumper.value) // Reverse Intake
-        .whileTrue(new RunCommand(() -> intakeSubsystem.setIntakeSpeed(1, true), intakeSubsystem));
+    // This is incase the note detection system fails.
+    new JoystickButton(midiController, 1) // Force Push intake on midi
+        .whileTrue(intakeSubsystem.run(() -> intakeSubsystem.setIntakeSpeed(1, true)));
 
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
@@ -126,8 +122,10 @@ public class RobotContainer {
                 () -> intakeSubsystem.setIntakeSpeed(-IntakeConstants.kIntakeSpeed),
                 intakeSubsystem));
 
-    new JoystickButton(controller, Button.kRightBumper.value)
+    new JoystickButton(controller, Button.kRightBumper.value) // Reverse Shooter to intake
         .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
+
+    new JoystickButton(midiController, 2).onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder));
   }
 
   public Command getAutonomousCommand() {

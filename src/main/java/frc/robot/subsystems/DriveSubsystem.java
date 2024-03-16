@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,6 +29,8 @@ import frc.utils.SwerveUtils;
 public class DriveSubsystem extends SubsystemBase {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
+
+  private Rotation2d fieldOrientationRotateBy;
 
   private final MAXSwerveModule frontLeft =
       new MAXSwerveModule(
@@ -124,13 +127,18 @@ public class DriveSubsystem extends SubsystemBase {
             : 0);
 
     var tag = PhotonCameraSystem.getFieldLayout().getTagPose(7);
-    if (tag.isEmpty()) return;
+    if (tag.isEmpty()) {
+      DriverStation.reportError("Field Layout Couldn't be loaded", false);
+      return;
+    }
+
     SmartDashboard.putNumber(
         "Distance To Shooter 2",
-        tag.get()
-            .getTranslation()
-            .toTranslation2d()
-            .getDistance(swerveOdometry.getEstimatedPosition().getTranslation()));
+        tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation()));
+
+    SmartDashboard.putNumber(
+        "Rotation to Shooter",
+        getPose().getRotation().minus(tag.get().getRotation().toRotation2d()).getDegrees());
   }
 
   public Pose2d getPose() {
@@ -222,7 +230,7 @@ public class DriveSubsystem extends SubsystemBase {
         SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedDelivered, ySpeedDelivered, rotDelivered, navX.getRotation2d())
+                    xSpeedDelivered, ySpeedDelivered, rotDelivered, getFieldOrientedRotation2d())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -266,8 +274,24 @@ public class DriveSubsystem extends SubsystemBase {
     rearRight.resetEncoders();
   }
 
+  /**
+   * Zeroes the heading of the robot.
+   *
+   * @apiNote THIS SHOULD NOT BE USED IN A MATCH, USE ZERO FIELD ORIENTATION INSTEAD ONLY USE THIS
+   *     IN AN EMERGENCY AS IT WILL FUCK UP THE VISION AND OTHER ODOMETRY SYSTEMS
+   */
   public void zeroHeading() {
     navX.reset();
+  }
+
+  /**
+   * Zeros the heading for the field orientation system, so that it is easier to use looking trough
+   * a different orientation.
+   *
+   * @see {@link zeroHeading} for actually resetting the heading on the hardware level
+   */
+  public void zeroFieldOrientation() {
+    fieldOrientationRotateBy = getRotation2d().unaryMinus();
   }
 
   /**
@@ -338,5 +362,9 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
     driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
+  }
+
+  private Rotation2d getFieldOrientedRotation2d() {
+    return getRotation2d().rotateBy(fieldOrientationRotateBy);
   }
 }

@@ -97,6 +97,7 @@ public class DriveSubsystem extends SubsystemBase {
     field.setRobotPose(pose);
     updatePoseWithVision();
     SmartDashboard.putData(field);
+    SmartDashboard.putNumber("Rotation", navX.getRotation2d().getDegrees());
     publisher.set(
         new SwerveModuleState[] {
           frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
@@ -326,6 +327,8 @@ public class DriveSubsystem extends SubsystemBase {
         MathUtil.applyDeadband(rot * sens, deadband),
         fieldRelative,
         rateLimit);
+    SmartDashboard.putNumber("xSpeed: ", xSpeed);
+    SmartDashboard.putNumber("ySpeed: ", ySpeed);
   }
 
   public void driveWithExtras(

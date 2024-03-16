@@ -87,7 +87,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
     var pose =
         swerveOdometry.update(
-            Rotation2d.fromDegrees(navX.getAngle()),
+            getRotation2d(),
             new SwerveModulePosition[] {
               frontLeft.getPosition(),
               frontRight.getPosition(),
@@ -275,7 +275,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return navX.getRotation2d().getDegrees();
+    return navX.getAngle();
   }
 
   public Rotation2d getRotation2d() {

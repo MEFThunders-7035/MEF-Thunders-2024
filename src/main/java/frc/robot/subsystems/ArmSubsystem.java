@@ -5,10 +5,13 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkRelativeEncoder;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -18,14 +21,17 @@ public class ArmSubsystem extends SubsystemBase {
   private final CANSparkMAXWrapped armFollower;
   private final RelativeEncoder encoder;
   private final SparkPIDController pidController;
+  private final ArmFeedforward feedforward;
 
   public ArmSubsystem() {
     arm = new CANSparkMAXWrapped(IntakeConstants.kArmMotorCanID, MotorType.kBrushed);
     armFollower =
         new CANSparkMAXWrapped(IntakeConstants.kArmFollowerMotorCanID, MotorType.kBrushed);
     armFollower.follow(arm, true); // Inverted
+    arm.restoreFactoryDefaults();
     encoder = arm.getEncoder(SparkRelativeEncoder.Type.kQuadrature, IntakeConstants.kArmEncoderCPR);
     pidController = arm.getPIDController();
+    feedforward = new ArmFeedforward(ArmPIDConstants.kS, ArmPIDConstants.kG, ArmPIDConstants.kV);
 
     setupSparkMax();
   }
@@ -36,9 +42,8 @@ public class ArmSubsystem extends SubsystemBase {
    * This method is here incase we want to switch to a different motor controller.
    */
   private void setupSparkMax() {
-
+    arm.setInverted(false);
     encoder.setPositionConversionFactor(IntakeConstants.kArmEncoderPositionFactor);
-    encoder.setInverted(true);
     pidController.setFeedbackDevice(encoder);
 
     pidController.setP(IntakeConstants.ArmPIDConstants.kP);
@@ -67,8 +72,20 @@ public class ArmSubsystem extends SubsystemBase {
    *
    * @apiNote YOU SHOULD NOT USE THIS METHOD UNLESS NECESSARY! USE THE PID CONTROLLER INSTEAD.
    */
-  public void setArmToZero() {
+  public void stopArm() {
     arm.set(0);
+  }
+
+  public boolean isArmAtPosition(double position) {
+    return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
+  }
+
+  public void resetEncoder() {
+    encoder.setPosition(0);
+  }
+
+  public void resetEncoder(double position) {
+    encoder.setPosition(position);
   }
 
   /**
@@ -78,7 +95,11 @@ public class ArmSubsystem extends SubsystemBase {
    * @see #setArmToPosition(int)
    */
   public void setArmToPosition(double position) {
-    pidController.setReference(position, ControlType.kPosition);
+    pidController.setReference(
+        position,
+        ControlType.kPosition,
+        0,
+        feedforward.calculate(position, Math.abs(encoder.getPosition() - position)));
   }
 
   /**
@@ -91,6 +112,21 @@ public class ArmSubsystem extends SubsystemBase {
     setArmToPosition(positionDegrees / 360.0);
   }
 
+  public Command setArmToPositionCommand(double position) {
+    return this.run(() -> this.setArmToPosition(position))
+        .until(() -> this.isArmAtPosition(position));
+  }
+
+  /**
+   * Sets the arm to a given position.
+   *
+   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
+   * @return A command that will set the arm to the given position.
+   */
+  public Command setArmToPositionCommand(int positionDegrees) {
+    return this.setArmToPositionCommand(positionDegrees / 360.0);
+  }
+
   public void setArmToAprilTag() {
     var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
     boolean isBlueAlliance = currentAlliance == DriverStation.Alliance.Blue;
@@ -98,13 +134,13 @@ public class ArmSubsystem extends SubsystemBase {
 
     var target = PhotonCameraSystem.getAprilTagWithID(idToTrack);
 
-    if (target == null) {
+    if (target.isEmpty()) {
       return;
     }
 
-    double distance = target.getArea(); // will be from 0 to 100. (Hopefully?)
+    double distance = target.get().getArea(); // will be from 0 to 100. (Hopefully?)
 
-    double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.1, 0.05); // between 10 and 20 deg
+    double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.2, 0.05); // between 10 and 20 deg
 
     setArmToPosition(armAngle);
   }

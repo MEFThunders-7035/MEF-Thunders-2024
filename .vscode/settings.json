@@ -47,10 +47,12 @@
     "Brushless",
     "Deadband",
     "Holonomic",
+    "Feedforward",
     "intaking",
     "Odometry",
     "Roborio",
     "setpoint",
-    "setpoints"
+    "setpoints",
+    "URCL"
   ]
 }

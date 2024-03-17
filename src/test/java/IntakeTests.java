@@ -18,7 +18,7 @@ class IntakeTests {
   public void setUp() {
     HAL.initialize(500, 0);
     intakeSubsystem = new IntakeSubsystem();
-    intakeMotor = SparkMAXSimAddon.getSparkMAX(IntakeConstants.kIntakeMotorCanID);
+    intakeMotor = SparkMAXSimAddon.getSparkMAX(IntakeConstants.kArmIntakeMotorCanID);
   }
 
   @AfterEach
@@ -30,6 +30,15 @@ class IntakeTests {
   void testIntakeSubsystem() {
     intakeSubsystem.setIntakeSpeed(0.5);
     assertEquals(0.5, intakeMotor.get(), 0.001);
+  }
+
+  @Test
+  void testIntakeNoteDetected() {
+    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    assertEquals(true, intakeSubsystem.hasNote(), "Intake should detect a note");
+    ColorSensorV3Wrapped.setRGBD(0, 0, 0, 0);
+    assertEquals(false, intakeSubsystem.hasNote(), "Intake should not detect a note");
+    // TODO: Add more tests for different RGBD values
   }
 
   @Test

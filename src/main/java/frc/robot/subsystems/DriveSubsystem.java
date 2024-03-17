@@ -9,13 +9,18 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -26,10 +31,14 @@ import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
 import frc.robot.Constants.OIConstants;
 import frc.utils.SwerveUtils;
+import java.util.Optional;
 
 public class DriveSubsystem extends SubsystemBase {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
+
+  private Rotation2d fieldOrientationRotateBy = Rotation2d.fromDegrees(180);
+  private boolean forceRobotOriented = false;
 
   private final MAXSwerveModule frontLeft =
       new MAXSwerveModule(
@@ -67,7 +76,7 @@ public class DriveSubsystem extends SubsystemBase {
   SwerveDrivePoseEstimator swerveOdometry =
       new SwerveDrivePoseEstimator(
           SwerveModuleConstants.kDriveKinematics,
-          Rotation2d.fromDegrees(navX.getAngle()),
+          getRotation2d(),
           new SwerveModulePosition[] {
             frontLeft.getPosition(),
             frontRight.getPosition(),
@@ -75,6 +84,11 @@ public class DriveSubsystem extends SubsystemBase {
             rearRight.getPosition()
           },
           new Pose2d());
+
+  StructArrayPublisher<SwerveModuleState> publisher =
+      NetworkTableInstance.getDefault()
+          .getStructArrayTopic("Swerve", SwerveModuleState.struct)
+          .publish();
 
   public DriveSubsystem() {
     // Do nothing
@@ -112,36 +126,113 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    swerveOdometry.update(
-        Rotation2d.fromDegrees(navX.getAngle()),
-        new SwerveModulePosition[] {
-          frontLeft.getPosition(),
-          frontRight.getPosition(),
-          rearLeft.getPosition(),
-          rearRight.getPosition()
-        });
-    field.setRobotPose(swerveOdometry.getEstimatedPosition());
+    var pose =
+        swerveOdometry.update(
+            getRotation2d(),
+            new SwerveModulePosition[] {
+              frontLeft.getPosition(),
+              frontRight.getPosition(),
+              rearLeft.getPosition(),
+              rearRight.getPosition()
+            });
+    field.setRobotPose(pose);
     updatePoseWithVision();
     SmartDashboard.putData(field);
+    SmartDashboard.putNumber("Rotation", getHeading());
+    SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
+    publisher.set(
+        new SwerveModuleState[] {
+          frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
+        });
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
   }
 
   private void updatePoseWithVision() {
     var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
-    if (poseOpt.isPresent()
-        && poseOpt.get().estimatedPose.toPose2d().relativeTo(getPose()).getTranslation().getNorm()
-            < 1.0) /* Only trust the vision if it's close to the current pose */ {
+    SmartDashboard.putBoolean("AprilTag Seen", poseOpt.isPresent());
+    if (poseOpt.isPresent()) {
       swerveOdometry.addVisionMeasurement(
           poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
     }
+    var shooterTarget = PhotonCameraSystem.getAprilTagWithID(7); // blue shooter
+    SmartDashboard.putNumber(
+        "Distance To Shooter",
+        shooterTarget.isPresent()
+            ? shooterTarget
+                .get()
+                .getBestCameraToTarget()
+                .getTranslation()
+                .toTranslation2d()
+                .getDistance(new Translation2d())
+            : 0);
+
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return;
+
+    SmartDashboard.putNumber(
+        "Distance To Shooter 2",
+        tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation()));
+
+    SmartDashboard.putNumber(
+        "Rotation Difference to Shooter",
+        getPose().getRotation().minus(tag.get().getRotation().toRotation2d()).getDegrees());
+  }
+
+  private Optional<Pose3d> getTagPose(int id) {
+    var tag = PhotonCameraSystem.getFieldLayout().getTagPose(id);
+
+    if (tag.isEmpty()) {
+      DriverStation.reportError("Field Layout Couldn't be loaded", false);
+      return Optional.empty();
+    }
+
+    return tag;
+  }
+
+  /**
+   * Gets the distance to the shooter.
+   *
+   * @exception DriverStation.reportError if the field layout couldn't be loaded. and returns 0.
+   * @return returns the distance to the shooter in meters. will return 0 if the field layout
+   *     couldn't be loaded.
+   */
+  public double getDistanceToShooter() {
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return 0;
+
+    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation());
+  }
+
+  public double getRotationDifferenceToShooter() {
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return 0;
+
+    return tag.get().getRotation().toRotation2d().minus(getPose().getRotation()).getDegrees();
   }
 
   public Pose2d getPose() {
     return swerveOdometry.getEstimatedPosition();
   }
 
+  public void setForceRobotOriented(boolean forceRobotOriented) {
+    this.forceRobotOriented = forceRobotOriented;
+  }
+
+  public void toggleForceRobotOriented() {
+    forceRobotOriented = !forceRobotOriented;
+  }
+
+  public boolean isForceRobotOriented() {
+    return forceRobotOriented;
+  }
+
   public void resetOdometry(Pose2d pose) {
     swerveOdometry.resetPosition(
-        Rotation2d.fromDegrees(navX.getAngle()),
+        getRotation2d(),
         new SwerveModulePosition[] {
           frontLeft.getPosition(),
           frontRight.getPosition(),
@@ -169,6 +260,10 @@ public class DriveSubsystem extends SubsystemBase {
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     double xSpeedCommanded;
     double ySpeedCommanded;
+
+    if (forceRobotOriented) {
+      fieldRelative = false;
+    }
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting
@@ -229,10 +324,26 @@ public class DriveSubsystem extends SubsystemBase {
         SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedDelivered, ySpeedDelivered, rotDelivered, navX.getRotation2d())
+                    xSpeedDelivered, ySpeedDelivered, rotDelivered, getFieldOrientedRotation2d())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
+    if (RobotBase.isSimulation()) {
+      // Update flywheel
+    }
+    
+    frontLeft.setDesiredState(swerveModuleStates[0]);
+    frontRight.setDesiredState(swerveModuleStates[1]);
+    rearLeft.setDesiredState(swerveModuleStates[2]);
+    rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    var swerveModuleStates = SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
     frontLeft.setDesiredState(swerveModuleStates[0]);
     frontRight.setDesiredState(swerveModuleStates[1]);
     rearLeft.setDesiredState(swerveModuleStates[2]);
@@ -251,7 +362,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void drive(double xSpeed, double ySpeed, double rot) {
-    drive(xSpeed, ySpeed, rot, true, false);
+    drive(xSpeed, ySpeed, rot, true, true);
   }
 
   /** Sets the wheels into an X formation to prevent movement. */
@@ -284,8 +395,24 @@ public class DriveSubsystem extends SubsystemBase {
     rearRight.resetEncoders();
   }
 
+  /**
+   * Zeroes the heading of the robot.
+   *
+   * @apiNote THIS SHOULD NOT BE USED IN A MATCH, USE ZERO FIELD ORIENTATION INSTEAD ONLY USE THIS
+   *     IN AN EMERGENCY AS IT WILL FUCK UP THE VISION AND OTHER ODOMETRY SYSTEMS
+   */
   public void zeroHeading() {
     navX.reset();
+  }
+
+  /**
+   * Zeros the heading for the field orientation system, so that it is easier to use looking trough
+   * a different orientation.
+   *
+   * @see {@link zeroHeading} for actually resetting the heading on the hardware level
+   */
+  public void zeroFieldOrientation() {
+    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(180));
   }
 
   /**
@@ -294,7 +421,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return navX.getRotation2d().getDegrees();
+    return navX.getAngle();
   }
 
   public Rotation2d getRotation2d() {
@@ -345,6 +472,8 @@ public class DriveSubsystem extends SubsystemBase {
         MathUtil.applyDeadband(rot * sens, deadband),
         fieldRelative,
         rateLimit);
+    SmartDashboard.putNumber("xSpeed: ", xSpeed);
+    SmartDashboard.putNumber("ySpeed: ", ySpeed);
   }
 
   public void driveWithExtras(
@@ -354,5 +483,9 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
     driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
+  }
+
+  private Rotation2d getFieldOrientedRotation2d() {
+    return getRotation2d().rotateBy(fieldOrientationRotateBy);
   }
 }

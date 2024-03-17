@@ -23,6 +23,11 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
       return;
     }
     colorSensor = null;
+
+    // Clear the RGBD values
+    for (int i = 0; i < rgbd.length; i++) {
+      rgbd[i] = 0;
+    }
   }
 
   /**
@@ -50,7 +55,9 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
 
   @Override
   public int getRed() {
-    if (RobotBase.isReal()) {
+    // we check if getRed() is 0 because the color sensor returns 0 when its not being "simulated"
+    // as this is only used for unit tests.
+    if (RobotBase.isReal() || colorSensor == null || super.getRed() != 0) {
       return super.getRed();
     }
     return rgbd[0];
@@ -58,7 +65,7 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
 
   @Override
   public int getGreen() {
-    if (RobotBase.isReal()) {
+    if (RobotBase.isReal() || colorSensor == null || super.getGreen() != 0) {
       return super.getGreen();
     }
     return rgbd[1];
@@ -66,7 +73,7 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
 
   @Override
   public int getBlue() {
-    if (RobotBase.isReal()) {
+    if (RobotBase.isReal() || colorSensor == null || super.getBlue() != 0) {
       return super.getBlue();
     }
     return rgbd[2];
@@ -74,7 +81,7 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
 
   @Override
   public int getProximity() {
-    if (RobotBase.isReal()) {
+    if (RobotBase.isReal() || colorSensor == null || super.getProximity() != 0) {
       return super.getProximity();
     }
     return rgbd[3];

@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.CameraConstants.PiCamera;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,13 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public final class PhotonCameraSystem {
   private static PhotonCamera camera = new PhotonCamera(PiCamera.cameraName);
   private static PhotonPoseEstimator photonPoseEstimator = getPhotonPoseEstimator();
+  private static AprilTagFieldLayout fieldLayout;
+
+  private static int loadTry = 0;
 
   private static PhotonPoseEstimator getPhotonPoseEstimator() {
     // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
-    AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+    fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
     // Create pose estimator
     photonPoseEstimator =
         new PhotonPoseEstimator(
@@ -42,6 +46,10 @@ public final class PhotonCameraSystem {
    */
   public static PhotonCamera getCamera() {
     return camera;
+  }
+
+  public static AprilTagFieldLayout getFieldLayout() {
+    return fieldLayout;
   }
 
   /**
@@ -139,14 +147,14 @@ public final class PhotonCameraSystem {
    * @param id The id of the aprilTag you want to find.
    * @return The PhotonTrackedTarget with the given id. If no target is found, it will return null.
    */
-  public static PhotonTrackedTarget getAprilTagWithID(int id) {
+  public static Optional<PhotonTrackedTarget> getAprilTagWithID(int id) {
     var targets = getTrackedTargets();
     for (var target : targets) {
       if (target.getFiducialId() == id) {
-        return target;
+        return Optional.of(target);
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   /**
@@ -167,6 +175,13 @@ public final class PhotonCameraSystem {
    */
   public static Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
     if (photonPoseEstimator == null) {
+      if (loadTry > 5) {
+        photonPoseEstimator = getPhotonPoseEstimator();
+        loadTry = 0;
+        return getEstimatedGlobalPose(prevEstimatedRobotPose);
+      }
+      DriverStation.reportError("Pose Estimator Couldn't be loaded", false);
+      loadTry += 1;
       // The field layout failed to load, so we cannot estimate poses.
       return Optional.empty();
     }
@@ -183,6 +198,13 @@ public final class PhotonCameraSystem {
    */
   public static Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
     if (photonPoseEstimator == null) {
+      if (loadTry > 5) {
+        photonPoseEstimator = getPhotonPoseEstimator();
+        loadTry = 0;
+        return getEstimatedGlobalPose();
+      }
+      DriverStation.reportError("Pose Estimator Offline", false);
+      loadTry += 1;
       // The field layout failed to load, so we cannot estimate poses.
       return Optional.empty();
     }

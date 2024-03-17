@@ -118,7 +118,7 @@ public final class Constants {
     public static final IdleMode kTurningMotorIdleMode = IdleMode.kBrake;
 
     public static final int kDrivingMotorCurrentLimit = 50; // amps
-    public static final int kTurningMotorCurrentLimit = 20; // amps
+    public static final int kTurningMotorCurrentLimit = 30; // amps
   }
 
   public static final class OIConstants {
@@ -128,18 +128,20 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
-    public static final int kIntakeMotorCanID = 9;
+    public static final int kArmIntakeMotorCanID = 9;
+    public static final int kGroundIntakeMotorCanID = 13;
     public static final int kArmMotorCanID = 10;
     public static final int kArmFollowerMotorCanID = 11;
 
-    public static final IdleMode kArmMotorIdleMode = IdleMode.kCoast;
+    public static final IdleMode kArmMotorIdleMode = IdleMode.kBrake;
+    public static final IdleMode kIntakeMotorIdleMode = IdleMode.kBrake;
 
     public static final class ColorSensorConstants {
       public static final I2C.Port kColorSensorPort = I2C.Port.kMXP; // Connected to the NavX MXP
     }
 
     public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.
-    public static final double kArmEncoderGearAmount = 1; // TODO: CHANGE THIS WHEN WE GET THE GEAR
+    public static final double kArmEncoderGearAmount = (64 / 14.0) * (10.71);
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
 
@@ -147,10 +149,18 @@ public final class Constants {
 
     public static final class ArmPIDConstants {
       // TODO: Tune these values
-      public static final double kP = 0.2;
-      public static final double kI = 0.0;
-      public static final double kD = 0.0;
+      public static final double kP = 4.5;
+      public static final double kI = 0;
+      public static final double kD = 2;
       public static final double kFF = 0.0;
+
+      // Feedforward gains
+      // ! TODO: TUNE
+      public static final double kS = 0.0;
+      public static final double kG = 0.0;
+      public static final double kV = 0.0;
+
+      public static final double kAllowedError = 0.01;
     }
   }
 
@@ -160,21 +170,27 @@ public final class Constants {
     public static final int kShooter1CanID = 11;
     public static final int kShooter2CanID = 12;
 
-    public static final double kShooterSpeed = 0.6;
+    public static final double kShooterSpeed = 1;
   }
 
   public static final class CameraConstants {
     public static final class PiCamera extends CameraDetails {
       public static final String cameraName = "piCamera";
-      public static final double kCameraHeight = 0.0;
+      public static final double kCameraHeight = 0.225;
       public static final double kCameraDistanceMeters =
           0.45; // ~45 cm away from the center of the robot
-      public static final double kCameraPitchRadians = Math.PI / 4; // 45 degree up
+      public static final double kCameraPitchRadians = Math.toRadians(30); // Straight Ahead
+      public static final double kCameraYawRadians = Math.PI; // looking to the back (180 degrees)
       public static final Transform3d robotToCam =
           new Transform3d(
               new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
-              new Rotation3d(0, kCameraPitchRadians, 0));
+              new Rotation3d(0, kCameraPitchRadians, kCameraYawRadians));
     }
+  }
+
+  public static final class LEDConstants {
+    public static final int kLedPin = 9;
+    public static final int kLedCount = 50;
   }
 
   public static final class AutoConstants {

@@ -20,7 +20,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -326,21 +325,6 @@ public class DriveSubsystem extends SubsystemBase {
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeedDelivered, ySpeedDelivered, rotDelivered, getFieldOrientedRotation2d())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-
-    if (RobotBase.isSimulation()) {
-      // Update flywheel
-    }
-    
-    frontLeft.setDesiredState(swerveModuleStates[0]);
-    frontRight.setDesiredState(swerveModuleStates[1]);
-    rearLeft.setDesiredState(swerveModuleStates[2]);
-    rearRight.setDesiredState(swerveModuleStates[3]);
-  }
-
-  public void driveRobotRelative(ChassisSpeeds speeds) {
-    var swerveModuleStates = SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(speeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 

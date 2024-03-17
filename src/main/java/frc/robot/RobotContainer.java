@@ -36,7 +36,7 @@ public class RobotContainer {
 
   public RobotContainer() {
     loggingInit();
-    configureBindings();
+    configureJoystickBindings();
     setDefaultCommands();
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
     if (RobotBase.isSimulation()) {
@@ -79,6 +79,12 @@ public class RobotContainer {
 
   private void setDefaultCommands() {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
+
+    // move arm with midi's potentiometer
+    armSubsystem.setDefaultCommand(
+        new RunCommand(
+            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0) / 2.0), armSubsystem));
+
     intakeSubsystem.setDefaultCommand(
         new RunCommand(
             () -> intakeSubsystem.setIntakeSpeed(midiController.getRawAxis(1)), intakeSubsystem));
@@ -87,14 +93,9 @@ public class RobotContainer {
         new RunCommand(
             () -> shooterSubsystem.setShooterSpeed(midiController.getRawAxis(2)),
             shooterSubsystem));
-
-    // move arm with midi's potentiometer
-    armSubsystem.setDefaultCommand(
-        new RunCommand(
-            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0) / 2.0), armSubsystem));
   }
 
-  private void configureBindings() {
+  private void configureJoystickBindings() {
     new JoystickButton(controller, Button.kA.value) // Handbrake
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
@@ -104,15 +105,11 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
 
-    // This is incase the note detection system fails.
-    new JoystickButton(midiController, 1) // Force Push intake on midi
-        .whileTrue(intakeSubsystem.run(() -> intakeSubsystem.setIntakeSpeed(1, true)));
-
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
             driveSubsystem
-                .runOnce(driveSubsystem::zeroHeading)
-                .alongWith(new PrintCommand("Zeroing Heading"))
+                .runOnce(driveSubsystem::zeroFieldOrientation)
+                .alongWith(new PrintCommand("Zeroing Field Orientation"))
                 .ignoringDisable(true));
 
     // This command is here incase the intake gets stuck.
@@ -125,7 +122,20 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kRightBumper.value) // Reverse Shooter to intake
         .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
 
-    new JoystickButton(midiController, 2).onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder));
+    configureMidiBindings();
+  }
+
+  private void configureMidiBindings() {
+    // This is incase the note detection system fails.
+    new JoystickButton(midiController, 1) // Force Push intake on midi
+        .whileTrue(intakeSubsystem.run(() -> intakeSubsystem.setIntakeSpeed(1, true)));
+
+    new JoystickButton(midiController, 2)
+        .onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder).ignoringDisable(true));
+
+    new JoystickButton(midiController, 16)
+        .onTrue(
+            driveSubsystem.runOnce(driveSubsystem::toggleForceRobotOriented).ignoringDisable(true));
   }
 
   public Command getAutonomousCommand() {

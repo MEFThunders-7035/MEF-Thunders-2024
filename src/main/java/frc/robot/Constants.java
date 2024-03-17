@@ -176,14 +176,15 @@ public final class Constants {
   public static final class CameraConstants {
     public static final class PiCamera extends CameraDetails {
       public static final String cameraName = "piCamera";
-      public static final double kCameraHeight = 0.0;
+      public static final double kCameraHeight = 0.225;
       public static final double kCameraDistanceMeters =
           0.45; // ~45 cm away from the center of the robot
-      public static final double kCameraPitchRadians = Math.PI / 4; // 45 degree up
+      public static final double kCameraPitchRadians = Math.toRadians(30); // Straight Ahead
+      public static final double kCameraYawRadians = Math.PI; // looking to the back (180 degrees)
       public static final Transform3d robotToCam =
           new Transform3d(
               new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
-              new Rotation3d(0, kCameraPitchRadians, 0));
+              new Rotation3d(0, kCameraPitchRadians, kCameraYawRadians));
     }
   }
 

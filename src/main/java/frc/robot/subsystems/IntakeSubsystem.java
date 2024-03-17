@@ -26,12 +26,12 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     armIntake = new CANSparkMAXWrapped(IntakeConstants.kArmIntakeMotorCanID, MotorType.kBrushless);
     groundIntake =
         new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushed);
-    setupIntakeMotor();
+    setupIntakeMotors();
 
     new Thread(this::fastPeriodic, "Fast Color Check Loop").start();
   }
 
-  private void setupIntakeMotor() {
+  private void setupIntakeMotors() {
     armIntake.restoreFactoryDefaults();
     groundIntake.restoreFactoryDefaults();
 

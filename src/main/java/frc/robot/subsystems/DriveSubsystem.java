@@ -30,7 +30,8 @@ public class DriveSubsystem extends SubsystemBase {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
 
-  private Rotation2d fieldOrientationRotateBy;
+  private Rotation2d fieldOrientationRotateBy = Rotation2d.fromDegrees(180);
+  private boolean forceRobotOriented = false;
 
   private final MAXSwerveModule frontLeft =
       new MAXSwerveModule(
@@ -145,6 +146,18 @@ public class DriveSubsystem extends SubsystemBase {
     return swerveOdometry.getEstimatedPosition();
   }
 
+  public void setForceRobotOriented(boolean forceRobotOriented) {
+    this.forceRobotOriented = forceRobotOriented;
+  }
+
+  public void toggleForceRobotOriented() {
+    forceRobotOriented = !forceRobotOriented;
+  }
+
+  public boolean isForceRobotOriented() {
+    return forceRobotOriented;
+  }
+
   public void resetOdometry(Pose2d pose) {
     swerveOdometry.resetPosition(
         getRotation2d(),
@@ -170,6 +183,10 @@ public class DriveSubsystem extends SubsystemBase {
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     double xSpeedCommanded;
     double ySpeedCommanded;
+
+    if (forceRobotOriented) {
+      fieldRelative = false;
+    }
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting

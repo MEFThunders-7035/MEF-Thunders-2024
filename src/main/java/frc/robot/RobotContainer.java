@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
+import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -29,7 +30,7 @@ public class RobotContainer {
   private final XboxController controller = new XboxController(0);
 
   private final SendableChooser<Command> autoChooser;
-  
+
   private final GenericHID midiController = new GenericHID(1);
 
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();

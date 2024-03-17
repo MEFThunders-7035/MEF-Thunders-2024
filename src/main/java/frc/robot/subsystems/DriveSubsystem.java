@@ -5,6 +5,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -15,6 +16,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,6 +27,7 @@ import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
 import frc.robot.Constants.OIConstants;
 import frc.utils.SwerveUtils;
+import java.util.Optional;
 
 public class DriveSubsystem extends SubsystemBase {
   private final AHRS navX = new AHRS();
@@ -102,10 +105,16 @@ public class DriveSubsystem extends SubsystemBase {
     updatePoseWithVision();
     SmartDashboard.putData(field);
     SmartDashboard.putNumber("Rotation", getHeading());
+    SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
     publisher.set(
         new SwerveModuleState[] {
           frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
         });
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
   }
 
   private void updatePoseWithVision() {
@@ -127,19 +136,48 @@ public class DriveSubsystem extends SubsystemBase {
                 .getDistance(new Translation2d())
             : 0);
 
-    var tag = PhotonCameraSystem.getFieldLayout().getTagPose(7);
-    if (tag.isEmpty()) {
-      DriverStation.reportError("Field Layout Couldn't be loaded", false);
-      return;
-    }
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return;
 
     SmartDashboard.putNumber(
         "Distance To Shooter 2",
         tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation()));
 
     SmartDashboard.putNumber(
-        "Rotation to Shooter",
+        "Rotation Difference to Shooter",
         getPose().getRotation().minus(tag.get().getRotation().toRotation2d()).getDegrees());
+  }
+
+  private Optional<Pose3d> getTagPose(int id) {
+    var tag = PhotonCameraSystem.getFieldLayout().getTagPose(id);
+
+    if (tag.isEmpty()) {
+      DriverStation.reportError("Field Layout Couldn't be loaded", false);
+      return Optional.empty();
+    }
+
+    return tag;
+  }
+
+  /**
+   * Gets the distance to the shooter.
+   *
+   * @exception DriverStation.reportError if the field layout couldn't be loaded. and returns 0.
+   * @return returns the distance to the shooter in meters. will return 0 if the field layout
+   *     couldn't be loaded.
+   */
+  public double getDistanceToShooter() {
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return 0;
+
+    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation());
+  }
+
+  public double getRotationDifferenceToShooter() {
+    var tag = getTagPose(7);
+    if (tag.isEmpty()) return 0;
+
+    return tag.get().getRotation().toRotation2d().minus(getPose().getRotation()).getDegrees();
   }
 
   public Pose2d getPose() {
@@ -251,6 +289,9 @@ public class DriveSubsystem extends SubsystemBase {
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+    if (RobotBase.isSimulation()) {
+      // Update flywheel
+    }
     frontLeft.setDesiredState(swerveModuleStates[0]);
     frontRight.setDesiredState(swerveModuleStates[1]);
     rearLeft.setDesiredState(swerveModuleStates[2]);
@@ -258,7 +299,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void drive(double xSpeed, double ySpeed, double rot) {
-    drive(xSpeed, ySpeed, rot, true, false);
+    drive(xSpeed, ySpeed, rot, true, true);
   }
 
   /** Sets the wheels into an X formation to prevent movement. */
@@ -308,7 +349,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @see {@link zeroHeading} for actually resetting the heading on the hardware level
    */
   public void zeroFieldOrientation() {
-    fieldOrientationRotateBy = getRotation2d().unaryMinus();
+    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(180));
   }
 
   /**

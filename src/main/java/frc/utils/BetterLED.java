@@ -43,6 +43,7 @@ public class BetterLED extends AddressableLED {
             },
             "LED Control Thread");
     ledUpdateThread.start();
+    breathe(new Color(0, 200, 255));
   }
 
   public void fill(Color color) {

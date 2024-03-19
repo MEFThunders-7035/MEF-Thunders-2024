@@ -11,4 +11,8 @@ public final class LEDSystem {
   public static void setLEDColorRGB(int r, int g, int b) {
     strip.fill(new Color(r, g, b));
   }
+
+  public static void init() {
+    System.out.println("Startup LED System!");
+  }
 }

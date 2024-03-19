@@ -4,6 +4,7 @@ import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.SparkRelativeEncoder;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -22,6 +23,8 @@ public class ArmSubsystem extends SubsystemBase {
   private final RelativeEncoder encoder;
   private final SparkPIDController pidController;
   private final ArmFeedforward feedforward;
+
+  private static final double kArmParallelDifference = 0.00339;
 
   public ArmSubsystem() {
     arm = new CANSparkMAXWrapped(IntakeConstants.kArmMotorCanID, MotorType.kBrushed);
@@ -50,7 +53,8 @@ public class ArmSubsystem extends SubsystemBase {
     pidController.setI(IntakeConstants.ArmPIDConstants.kI);
     pidController.setD(IntakeConstants.ArmPIDConstants.kD);
     pidController.setFF(IntakeConstants.ArmPIDConstants.kFF);
-    pidController.setOutputRange(-1, 1); // I don't think we need these as Constants in a file.
+    pidController.setIMaxAccum(0.1, 0);
+    pidController.setOutputRange(-0.2, 0.7); // I don't think we need these as Constants in a file.
 
     arm.setIdleMode(IntakeConstants.kArmMotorIdleMode);
     arm.setSmartCurrentLimit(IntakeConstants.kSmartCurrentLimit);
@@ -95,11 +99,16 @@ public class ArmSubsystem extends SubsystemBase {
    * @see #setArmToPosition(int)
    */
   public void setArmToPosition(double position) {
+    // the hand is slightly down, which means the 0 value is
+    // actually "kArmParallelDifference" down so we compensate for that in the calculation
+    var calculation =
+        feedforward.calculate(
+            (position - kArmParallelDifference) * Math.PI,
+            Math.abs(encoder.getPosition() - position));
+    SmartDashboard.putNumber("FeedForward Calculation", calculation);
+    SmartDashboard.putNumber("Setpoint", position);
     pidController.setReference(
-        position,
-        ControlType.kPosition,
-        0,
-        feedforward.calculate(position, Math.abs(encoder.getPosition() - position)));
+        position, ControlType.kPosition, 0, calculation, ArbFFUnits.kVoltage);
   }
 
   /**

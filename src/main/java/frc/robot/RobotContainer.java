@@ -16,12 +16,14 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSystem;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import org.littletonrobotics.urcl.URCL;
@@ -48,6 +50,7 @@ public class RobotContainer {
     if (RobotBase.isSimulation()) {
       simInit();
     }
+    LEDSystem.init();
   }
 
   private void loggingInit() {
@@ -89,7 +92,7 @@ public class RobotContainer {
     // move arm with midi's potentiometer
     armSubsystem.setDefaultCommand(
         new RunCommand(
-            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0) / 2.0), armSubsystem));
+            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0)), armSubsystem));
 
     intakeSubsystem.setDefaultCommand(
         new RunCommand(
@@ -106,10 +109,20 @@ public class RobotContainer {
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
     new JoystickButton(controller, Button.kB.value) // Intake
-        .whileTrue(new SmartIntakeCommand(intakeSubsystem, armSubsystem, controller));
+        .whileTrue(new SmartIntakeCommand(intakeSubsystem, controller));
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(
+            new SmartShootCommand(
+                shooterSubsystem,
+                intakeSubsystem,
+                armSubsystem,
+                driveSubsystem,
+                controller::getLeftY,
+                controller::getLeftX));
+
+    new JoystickButton(controller, Button.kX.value)
+        .whileTrue(new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
 
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
@@ -138,6 +151,9 @@ public class RobotContainer {
 
     new JoystickButton(midiController, 2)
         .onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder).ignoringDisable(true));
+
+    new JoystickButton(midiController, 3)
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
 
     new JoystickButton(midiController, 16)
         .onTrue(

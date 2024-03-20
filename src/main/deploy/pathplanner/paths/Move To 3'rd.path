@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.9173805620338513,
-        "y": 2.02
+        "x": 2.6,
+        "y": 5.55
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.9515678771512954,
-        "y": 2.02
+        "x": 3.6,
+        "y": 5.55
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Grabbed Point"
     },
     {
       "anchor": {
-        "x": 2.9248851224975176,
-        "y": 2.02
+        "x": 2.704382940071784,
+        "y": 4.111991050457951
       },
       "prevControl": {
-        "x": 1.928803934697425,
-        "y": 2.02
+        "x": 0.1931312628278217,
+        "y": 4.023876956519567
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Grab 2"
     }
   ],
   "rotationTargets": [],
@@ -33,13 +33,13 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0
+    "maxAcceleration": 1.0,
+    "maxAngularVelocity": 90.0,
+    "maxAngularAcceleration": 45.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0,
+    "rotation": 0,
     "rotateFast": false
   },
   "reversed": false,
@@ -48,5 +48,5 @@
     "rotation": 0,
     "velocity": 0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

@@ -26,7 +26,7 @@ public class SmartShootCommand extends ParallelRaceGroup {
         // Constantly move the arm until all the other commands finish.
         new MoveArmToShooterCommand(armSubsystem, driveSubsystem)
             .raceWith(
-                new BasicRunShooterCommand(shooterSubsystem, 1)
+                new BasicRunShooterCommand(shooterSubsystem, 2.5)
                     .andThen(
                         new BasicRunShooterCommand(shooterSubsystem)
                             .raceWith(intakeSubsystem.loadToShooterCommand()))));

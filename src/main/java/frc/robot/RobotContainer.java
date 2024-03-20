@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -16,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
@@ -41,10 +43,14 @@ public class RobotContainer {
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
 
   public RobotContainer() {
+    setupNamedCommands();
     loggingInit();
     configureJoystickBindings();
     setDefaultCommands();
     autoChooser = AutoBuilder.buildAutoChooser();
+    autoChooser.addOption(
+        "Shoot To Shooter",
+        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
     SmartDashboard.putData("Auto Chooser", autoChooser);
     if (RobotBase.isSimulation()) {
@@ -84,6 +90,15 @@ public class RobotContainer {
     }
     // add any simulation specific code here.
     // was made for photonSim, but it's not used.
+  }
+
+  private void setupNamedCommands() {
+    NamedCommands.registerCommand("Intake", new BasicIntakeCommand(intakeSubsystem));
+    NamedCommands.registerCommand(
+        "Shoot To Speaker",
+        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
+    NamedCommands.registerCommand(
+        "Shoot To Amp", new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
   }
 
   private void setDefaultCommands() {

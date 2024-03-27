@@ -24,7 +24,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   public IntakeSubsystem() {
     armIntake = new CANSparkMAXWrapped(IntakeConstants.kArmIntakeMotorCanID, MotorType.kBrushless);
     groundIntake =
-        new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushed);
+        new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushless);
     setupIntakeMotors();
 
     new Thread(this::fastPeriodic, "Fast Color Check Loop").start();
@@ -35,8 +35,9 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     groundIntake.restoreFactoryDefaults();
 
     armIntake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
+    groundIntake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
     armIntake.setInverted(true);
-    groundIntake.setInverted(false);
+    groundIntake.setInverted(true);
 
     armIntake.setIdleMode(IntakeConstants.kIntakeMotorIdleMode);
     groundIntake.setIdleMode(IdleMode.kCoast);

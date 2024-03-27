@@ -14,6 +14,7 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.PhotonUtils;
 import org.photonvision.common.hardware.VisionLEDMode;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
@@ -68,6 +69,14 @@ public final class PhotonCameraSystem {
             PiCamera.kCameraHeight, targetHeightMeters, pitch, PiCamera.kCameraPitchRadians));
   }
 
+  public static PhotonPipelineResult getLatestResult() {
+    if (camera.getDriverMode()) {
+      System.out.println("Driver Mode Was ON! Turning it off...");
+      camera.setDriverMode(false);
+    }
+    return camera.getLatestResult();
+  }
+
   /**
    * Returns the pitch of the target according to the camera.
    *
@@ -75,7 +84,7 @@ public final class PhotonCameraSystem {
    *     target is found, it will return 0 (I have no clue what the units are)
    */
   public static double getPitch() {
-    var latestResult = camera.getLatestResult();
+    var latestResult = getLatestResult();
     if (latestResult.hasTargets()) {
       return latestResult.getBestTarget().getPitch();
     }
@@ -89,7 +98,7 @@ public final class PhotonCameraSystem {
    *     target is found, it will return 0. (I have no clue what the units are)
    */
   public static double getYaw() {
-    var latestResult = camera.getLatestResult();
+    var latestResult = getLatestResult();
     if (latestResult.hasTargets()) {
       return latestResult.getBestTarget().getYaw();
     }
@@ -102,7 +111,7 @@ public final class PhotonCameraSystem {
    * @return the area percentage (0 to 100) of the camera fov.
    */
   public static double getArea() {
-    var latestResult = camera.getLatestResult();
+    var latestResult = getLatestResult();
     if (latestResult.hasTargets()) {
       return latestResult.getBestTarget().getArea();
     }
@@ -114,7 +123,7 @@ public final class PhotonCameraSystem {
    *     return -1.
    */
   public static int getCurrentAprilTagID() {
-    var latestResult = camera.getLatestResult();
+    var latestResult = getLatestResult();
     if (latestResult.hasTargets()) {
       return latestResult.getBestTarget().getFiducialId();
     }
@@ -127,10 +136,11 @@ public final class PhotonCameraSystem {
    */
   public static List<Integer> getTrackedTargetsIDs() {
     List<Integer> ids = new ArrayList<>();
+    var latestResult = getLatestResult();
     // If there are no targets, return an empty array.
-    if (!camera.getLatestResult().hasTargets()) return ids;
+    if (!latestResult.hasTargets()) return ids;
     // Get the ids of each target.
-    var targets = camera.getLatestResult().getTargets();
+    var targets = latestResult.getTargets();
     for (var target : targets) {
       ids.add(target.getFiducialId());
     }
@@ -207,6 +217,10 @@ public final class PhotonCameraSystem {
       loadTry += 1;
       // The field layout failed to load, so we cannot estimate poses.
       return Optional.empty();
+    }
+    if (camera.getDriverMode()) {
+      camera.setDriverMode(false);
+      System.out.println("Camera Was in driver mode, switched to off...");
     }
     return photonPoseEstimator.update();
   }

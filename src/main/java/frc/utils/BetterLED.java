@@ -43,7 +43,8 @@ public class BetterLED extends AddressableLED {
             },
             "LED Control Thread");
     ledUpdateThread.start();
-    breathe(new Color(0, 200, 255));
+
+    blink(new Color(0, 200, 255));
   }
 
   public void fill(Color color) {
@@ -80,6 +81,18 @@ public class BetterLED extends AddressableLED {
     changeLoopTo(
         () -> {
           for (int i = 0; i < blinkCount; i++) {
+            fill(color);
+            Timer.delay(0.5);
+            fill(Color.kBlack);
+            Timer.delay(0.5);
+          }
+        });
+  }
+
+  public void blink(Color color) {
+    changeLoopTo(
+        () -> {
+          for (; ; ) {
             fill(color);
             Timer.delay(0.5);
             fill(Color.kBlack);

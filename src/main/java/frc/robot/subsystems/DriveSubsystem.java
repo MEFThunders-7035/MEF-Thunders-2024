@@ -125,6 +125,7 @@ public class DriveSubsystem extends SubsystemBase {
         },
         this // Reference to this subsystem to set requirements
         );
+    SmartDashboard.putNumber("Move By", 0);
   }
 
   @Override
@@ -193,7 +194,8 @@ public class DriveSubsystem extends SubsystemBase {
     var tag = getTagPose(ExtraFunctions.getShooterAprilTagID());
     if (tag.isEmpty()) return 0;
 
-    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation());
+    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation())
+        + SmartDashboard.getNumber("Move By", 0);
   }
 
   public Rotation2d getRotationDifferenceToShooter() {
@@ -205,7 +207,8 @@ public class DriveSubsystem extends SubsystemBase {
             -Math.atan2(
                 tag.get().getTranslation().getY() - getPose().getTranslation().getY(),
                 tag.get().getTranslation().getX() - getPose().getTranslation().getX()))
-        .rotateBy(Rotation2d.fromDegrees(180 - 20.0)) // 20 degrees to the left
+        .rotateBy(
+            Rotation2d.fromDegrees(180 - 40.0)) // FIXME 40 degrees to the left for calibration
         .rotateBy(swerveOdometry.getEstimatedPosition().getRotation());
   }
 

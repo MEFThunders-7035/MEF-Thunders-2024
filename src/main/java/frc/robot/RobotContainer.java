@@ -189,6 +189,9 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected().andThen(() -> driveSubsystem.drive(0, 0, 0));
+    return autoChooser
+        .getSelected()
+        .andThen(() -> driveSubsystem.drive(0, 0, 0))
+        .beforeStarting(armSubsystem.runOnce(armSubsystem::resetEncoder));
   }
 }

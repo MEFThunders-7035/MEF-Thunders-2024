@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -61,6 +62,11 @@ public class RobotContainer {
       simInit();
     }
     LEDSystem.init();
+    setupCamera();
+  }
+
+  private void setupCamera() {
+    CameraServer.startAutomaticCapture();
   }
 
   private void loggingInit() {

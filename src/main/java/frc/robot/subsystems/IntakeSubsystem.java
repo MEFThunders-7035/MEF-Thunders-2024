@@ -27,7 +27,14 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
         new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushless);
     setupIntakeMotors();
 
-    new Thread(this::fastPeriodic, "Fast Color Check Loop").start();
+    new Thread(
+            () -> {
+              while (true) {
+                fastPeriodic();
+              }
+            },
+            "Fast Color Check Loop")
+        .start();
   }
 
   private void setupIntakeMotors() {
@@ -96,7 +103,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
   public void checkIfHasNote() {
     if (hasNote() && armIntake.get() > 0) {
-      armIntake.set(0);
+      setIntakeSpeed(0);
     }
   }
 
@@ -121,6 +128,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
     SmartDashboard.putBoolean("Note Detected", hasNote());
+    checkIfHasNote();
   }
 
   private void fastPeriodic() {

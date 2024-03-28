@@ -180,6 +180,9 @@ public class RobotContainer {
     new JoystickButton(midiController, 3)
         .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
 
+    new JoystickButton(midiController, 4)
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+
     new JoystickButton(midiController, 16)
         .onTrue(
             driveSubsystem.runOnce(driveSubsystem::toggleForceRobotOriented).ignoringDisable(true));

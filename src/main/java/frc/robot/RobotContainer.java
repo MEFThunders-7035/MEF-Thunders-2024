@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.commands.ReallySimpleAuto;
 import frc.robot.commands.ShootToAmpCommand;
@@ -116,8 +117,7 @@ public class RobotContainer {
 
     // move arm with midi's potentiometer
     armSubsystem.setDefaultCommand(
-        new RunCommand(
-            () -> armSubsystem.setArmToPosition(midiController.getRawAxis(0)), armSubsystem));
+        new ArmIdleCommand(armSubsystem, () -> midiController.getRawAxis(0)));
 
     intakeSubsystem.setDefaultCommand(
         new RunCommand(

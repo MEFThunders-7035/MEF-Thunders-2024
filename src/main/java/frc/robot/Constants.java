@@ -8,13 +8,12 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.I2C;
-import frc.robot.DataTypes.CameraDetails;
 
 public final class Constants {
   private Constants() {} // Prevents instantiation, as this is a utility class
 
   public static final class UtilConstants {
-    public static int kRoborioDIOCount = 9;
+    public static final int kRoborioDIOCount = 9;
   }
 
   public static final class DriveConstants {
@@ -140,8 +139,8 @@ public final class Constants {
       public static final I2C.Port kColorSensorPort = I2C.Port.kMXP; // Connected to the NavX MXP
     }
 
-    public static final int kArmEncoderCPR = 80; // The encoder isn't the best, but we will make do.
-    public static final double kArmEncoderGearAmount = (64 / 14.0) * (10.71);
+    public static final int kArmEncoderCPR = 4096; // Trough Bore
+    public static final double kArmEncoderGearAmount = 1; // Directly Connected
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
 
@@ -149,15 +148,15 @@ public final class Constants {
 
     public static final class ArmPIDConstants {
       // TODO: Tune these values
-      public static final double kP = 4.5;
-      public static final double kI = 0;
-      public static final double kD = 2;
-      public static final double kFF = 0.0;
+      public static final double kP = 3; // 3
+      public static final double kI = 0.02; // 0.02
+      public static final double kD = 8; // 4
+      public static final double kFF = 0.0; // 0
 
       // Feedforward gains
       // ! TODO: TUNE
       public static final double kS = 0.0;
-      public static final double kG = 0.0;
+      public static final double kG = 2;
       public static final double kV = 0.0;
 
       public static final double kAllowedError = 0.01;
@@ -174,23 +173,24 @@ public final class Constants {
   }
 
   public static final class CameraConstants {
-    public static final class PiCamera extends CameraDetails {
+    public static final class PiCamera {
       public static final String cameraName = "piCamera";
       public static final double kCameraHeight = 0.225;
-      public static final double kCameraDistanceMeters =
-          0.45; // ~45 cm away from the center of the robot
-      public static final double kCameraPitchRadians = Math.toRadians(30); // Straight Ahead
-      public static final double kCameraYawRadians = Math.PI; // looking to the back (180 degrees)
+      public static final double kCameraYDistanceMeters =
+          0.45; // ~45 cm away from the center of the robot forwards
+      public static final double kCameraXDistanceMeters = 0.18; // ~18 cm away sideways
+      public static final double kCameraPitchRadians = Math.toRadians(30); // 30 degrees up
+      public static final double kCameraYawRadians = Math.toRadians(180); // looking to the back
       public static final Transform3d robotToCam =
           new Transform3d(
-              new Translation3d(kCameraDistanceMeters, kCameraHeight, 0),
+              new Translation3d(kCameraXDistanceMeters, kCameraYDistanceMeters, kCameraHeight),
               new Rotation3d(0, kCameraPitchRadians, kCameraYawRadians));
     }
   }
 
   public static final class LEDConstants {
     public static final int kLedPin = 9;
-    public static final int kLedCount = 50;
+    public static final int kLedCount = 90;
   }
 
   public static final class AutoConstants {
@@ -207,5 +207,25 @@ public final class Constants {
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
         new TrapezoidProfile.Constraints(
             kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
+    public static final class DrivePIDController {
+      public static final double kP = 2.0;
+      public static final double kI = 0;
+      public static final double kD = 0.5;
+    }
+
+    public static final class RotationPIDController {
+      public static final double kP = 0.5;
+      public static final double kI = 0;
+      public static final double kD = 0.2;
+    }
+  }
+
+  public static final class MagicConstants {
+    public static final class ArmQuadraticFunction {
+      public static final double kXSquared = -0.0290179;
+      public static final double kX = 0.184476;
+      public static final double kConstant = -0.0879749;
+    }
   }
 }

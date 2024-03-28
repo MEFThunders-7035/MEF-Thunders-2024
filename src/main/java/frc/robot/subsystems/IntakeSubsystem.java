@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.IntakeConstants;
@@ -25,10 +24,17 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   public IntakeSubsystem() {
     armIntake = new CANSparkMAXWrapped(IntakeConstants.kArmIntakeMotorCanID, MotorType.kBrushless);
     groundIntake =
-        new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushed);
+        new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushless);
     setupIntakeMotors();
 
-    new Thread(this::fastPeriodic, "Fast Color Check Loop").start();
+    new Thread(
+            () -> {
+              while (true) {
+                fastPeriodic();
+              }
+            },
+            "Fast Color Check Loop")
+        .start();
   }
 
   private void setupIntakeMotors() {
@@ -36,6 +42,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     groundIntake.restoreFactoryDefaults();
 
     armIntake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
+    groundIntake.setSmartCurrentLimit(20); // NEO 550 stall current is 20A
     armIntake.setInverted(true);
     groundIntake.setInverted(true);
 
@@ -63,10 +70,20 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
       blue = (int) (blue * (1600.0 / colorSensor.getProximity()));
     }
 
-    return colorSensor.getProximity() > 700
-        && red > 2000
+    return colorSensor.getProximity() > 300
+        && red > 700
         && blue < 9000
         && red > colorSensor.getGreen();
+  }
+
+  public void setIntakeSpeed(double armSpeed, double groundSpeed, boolean force) {
+    if (armSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
+      armIntake.set(0);
+    } else {
+      armIntake.set(armSpeed);
+    }
+
+    groundIntake.set(groundSpeed);
   }
 
   public void setIntakeSpeed(double speed, boolean force) {
@@ -86,13 +103,15 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
   public void checkIfHasNote() {
     if (hasNote() && armIntake.get() > 0) {
-      armIntake.set(0);
+      setIntakeSpeed(0);
     }
   }
 
   public Command loadToShooterCommand() {
-    return new RunCommand(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, true))
-        .until(() -> !hasNote());
+    return run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true))
+        .onlyWhile(this::hasNote)
+        .andThen(new PrintCommand("Loaded to Shooter!"))
+        .alongWith(new PrintCommand("Loading To Shooter"));
   }
 
   public Command vibrateControllerOnNoteCommand(XboxController controller) {
@@ -109,6 +128,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
     SmartDashboard.putBoolean("Note Detected", hasNote());
+    checkIfHasNote();
   }
 
   private void fastPeriodic() {

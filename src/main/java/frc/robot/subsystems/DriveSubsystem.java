@@ -1,13 +1,16 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -16,16 +19,18 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.AutoConstants.DrivePIDController;
+import frc.robot.Constants.AutoConstants.RotationPIDController;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
 
@@ -88,6 +93,39 @@ public class DriveSubsystem extends SubsystemBase {
 
   public DriveSubsystem() {
     // Do nothing
+    AutoBuilder.configureHolonomic(
+        this::getPose, // Robot pose supplier
+        this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting
+        // pose)
+        this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE
+        // ChassisSpeeds
+        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in
+            // your Constants class
+            new PIDConstants(
+                DrivePIDController.kP, DrivePIDController.kD), // Translation PID constants
+            new PIDConstants(
+                RotationPIDController.kP, RotationPIDController.kD), // Rotation PID constants
+            DriveConstants.kMaxSpeedMetersPerSecond, // Max module speed, in m/s
+            0.55, // Drive base radius in meters. Distance from robot center to furthest module.
+            new ReplanningConfig(
+                true, true) // Default path replanning config. See the API for the options
+            // here
+            ),
+        () -> {
+          // Boolean supplier that controls when the path will be mirrored for the red alliance
+          // This will flip the path being followed to the red side of the field.
+          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+          var alliance = DriverStation.getAlliance();
+          if (alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
+          }
+          return false;
+        },
+        this // Reference to this subsystem to set requirements
+        );
+    SmartDashboard.putNumber("Move By", 0);
   }
 
   @Override
@@ -124,28 +162,14 @@ public class DriveSubsystem extends SubsystemBase {
       swerveOdometry.addVisionMeasurement(
           poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
     }
-    var shooterTarget = PhotonCameraSystem.getAprilTagWithID(7); // blue shooter
-    SmartDashboard.putNumber(
-        "Distance To Shooter",
-        shooterTarget.isPresent()
-            ? shooterTarget
-                .get()
-                .getBestCameraToTarget()
-                .getTranslation()
-                .toTranslation2d()
-                .getDistance(new Translation2d())
-            : 0);
 
-    var tag = getTagPose(7);
-    if (tag.isEmpty()) return;
+    SmartDashboard.putNumber("Distance To Shooter", getDistanceToShooter());
 
     SmartDashboard.putNumber(
-        "Distance To Shooter 2",
-        tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation()));
+        "Rotation Difference to Shooter", getRotationDifferenceToShooter().getDegrees());
 
     SmartDashboard.putNumber(
-        "Rotation Difference to Shooter",
-        getPose().getRotation().minus(tag.get().getRotation().toRotation2d()).getDegrees());
+        "Arm Angle Required", ExtraFunctions.getAngleFromDistance(getDistanceToShooter()));
   }
 
   private Optional<Pose3d> getTagPose(int id) {
@@ -167,17 +191,25 @@ public class DriveSubsystem extends SubsystemBase {
    *     couldn't be loaded.
    */
   public double getDistanceToShooter() {
-    var tag = getTagPose(7);
+    var tag = getTagPose(ExtraFunctions.getShooterAprilTagID());
     if (tag.isEmpty()) return 0;
 
-    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation());
+    return tag.get().getTranslation().toTranslation2d().getDistance(getPose().getTranslation())
+        + SmartDashboard.getNumber("Move By", 0);
   }
 
-  public double getRotationDifferenceToShooter() {
-    var tag = getTagPose(7);
-    if (tag.isEmpty()) return 0;
+  public Rotation2d getRotationDifferenceToShooter() {
+    var tag = getTagPose(ExtraFunctions.getShooterAprilTagID());
 
-    return tag.get().getRotation().toRotation2d().minus(getPose().getRotation()).getDegrees();
+    if (tag.isEmpty()) return new Rotation2d();
+
+    return Rotation2d.fromRadians(
+            -Math.atan2(
+                tag.get().getTranslation().getY() - getPose().getTranslation().getY(),
+                tag.get().getTranslation().getX() - getPose().getTranslation().getX()))
+        .rotateBy(
+            Rotation2d.fromDegrees(180 - 40.0)) // FIXME 40 degrees to the left for calibration
+        .rotateBy(swerveOdometry.getEstimatedPosition().getRotation());
   }
 
   public Pose2d getPose() {
@@ -206,6 +238,11 @@ public class DriveSubsystem extends SubsystemBase {
           rearRight.getPosition()
         },
         pose);
+  }
+
+  public ChassisSpeeds getChassisSpeeds() {
+    return SwerveModuleConstants.kDriveKinematics.toChassisSpeeds(
+        frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState());
   }
 
   /**
@@ -289,9 +326,18 @@ public class DriveSubsystem extends SubsystemBase {
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    if (RobotBase.isSimulation()) {
-      // Update flywheel
-    }
+
+    frontLeft.setDesiredState(swerveModuleStates[0]);
+    frontRight.setDesiredState(swerveModuleStates[1]);
+    rearLeft.setDesiredState(swerveModuleStates[2]);
+    rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    var swerveModuleStates = SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
     frontLeft.setDesiredState(swerveModuleStates[0]);
     frontRight.setDesiredState(swerveModuleStates[1]);
     rearLeft.setDesiredState(swerveModuleStates[2]);

@@ -190,7 +190,7 @@ public final class Constants {
 
   public static final class LEDConstants {
     public static final int kLedPin = 9;
-    public static final int kLedCount = 90;
+    public static final int kLedCount = 82;
   }
 
   public static final class AutoConstants {

@@ -1,18 +1,21 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.util.Color;
-import frc.robot.Constants.LEDConstants;
-import frc.utils.BetterLED;
+import edu.wpi.first.wpilibj2.command.Command;
 
 public final class LEDSystem {
-  private static final BetterLED strip =
-      new BetterLED(LEDConstants.kLedPin, LEDConstants.kLedCount);
+  private static final LEDSubsystem ledSubsystemInstance = new LEDSubsystem();
 
-  public static void setLEDColorRGB(int r, int g, int b) {
-    strip.fill(new Color(r, g, b));
+  private LEDSystem() {}
+
+  public static LEDSubsystem getInstance() {
+    return ledSubsystemInstance;
   }
 
-  public static void init() {
-    System.out.println("Startup LED System!");
+  public static Command run(Runnable toRun) {
+    return ledSubsystemInstance.run(toRun);
+  }
+
+  public static Command getBlinkRedCommand() {
+    return ledSubsystemInstance.getRedBlinkCommand();
   }
 }

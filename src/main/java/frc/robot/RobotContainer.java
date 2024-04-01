@@ -24,10 +24,12 @@ import frc.robot.commands.ReallySimpleAuto;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
+import frc.robot.commands.led_commands.LEDIdleCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LEDSystem;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -44,6 +46,7 @@ public class RobotContainer {
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ArmSubsystem armSubsystem = new ArmSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  private final LEDSubsystem ledSubsystem = LEDSystem.getInstance();
 
   public RobotContainer() {
     setupNamedCommands();
@@ -62,7 +65,6 @@ public class RobotContainer {
     if (RobotBase.isSimulation()) {
       simInit();
     }
-    LEDSystem.init();
     setupCamera();
   }
 
@@ -127,6 +129,9 @@ public class RobotContainer {
         new RunCommand(
             () -> shooterSubsystem.setShooterSpeed(midiController.getRawAxis(2)),
             shooterSubsystem));
+
+    ledSubsystem.setDefaultCommand(
+        new LEDIdleCommand(ledSubsystem, intakeSubsystem).ignoringDisable(true));
   }
 
   private void configureJoystickBindings() {

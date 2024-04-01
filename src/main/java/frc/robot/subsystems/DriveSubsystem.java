@@ -207,8 +207,7 @@ public class DriveSubsystem extends SubsystemBase {
             -Math.atan2(
                 tag.get().getTranslation().getY() - getPose().getTranslation().getY(),
                 tag.get().getTranslation().getX() - getPose().getTranslation().getX()))
-        .rotateBy(
-            Rotation2d.fromDegrees(180 - 40.0)) // FIXME 40 degrees to the left for calibration
+        .rotateBy(Rotation2d.fromDegrees(180))
         .rotateBy(swerveOdometry.getEstimatedPosition().getRotation());
   }
 

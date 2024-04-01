@@ -147,7 +147,6 @@ public final class Constants {
     public static final double kIntakeSpeed = 1;
 
     public static final class ArmPIDConstants {
-      // TODO: Tune these values
       public static final double kP = 3; // 3
       public static final double kI = 0.02; // 0.02
       public static final double kD = 8; // 4
@@ -179,7 +178,7 @@ public final class Constants {
       public static final double kCameraYDistanceMeters =
           0.45; // ~45 cm away from the center of the robot forwards
       public static final double kCameraXDistanceMeters = 0.18; // ~18 cm away sideways
-      public static final double kCameraPitchRadians = Math.toRadians(30); // 30 degrees up
+      public static final double kCameraPitchRadians = Math.toRadians(-30); // 30 degrees up
       public static final double kCameraYawRadians = Math.toRadians(180); // looking to the back
       public static final Transform3d robotToCam =
           new Transform3d(

@@ -5,8 +5,6 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.DriveSubsystem;
 
 public class DefaultDriveCommand extends SequentialCommandGroup {
-  private boolean hasBeenIdling = false;
-
   public DefaultDriveCommand(DriveSubsystem driveSubsystem, XboxController controller) {
     super(
         driveSubsystem.run(

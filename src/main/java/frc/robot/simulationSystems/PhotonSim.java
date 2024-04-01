@@ -8,7 +8,6 @@ import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.VisionSystemSim;
 
 public class PhotonSim {
-  // TODO: Implement PhotonSim
   private static PhotonCameraSim cameraSim;
   private static VisionSystemSim visionSim;
 

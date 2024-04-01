@@ -36,6 +36,7 @@ public class ArmSubsystem extends SubsystemBase {
     pidController = arm.getPIDController();
     feedforward = new ArmFeedforward(ArmPIDConstants.kS, ArmPIDConstants.kG, ArmPIDConstants.kV);
 
+    SmartDashboard.putNumber("Arm Pos", 0);
     setupSparkMax();
   }
 

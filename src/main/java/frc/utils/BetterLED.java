@@ -2,6 +2,7 @@ package frc.utils;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import java.util.ArrayList;
@@ -9,7 +10,9 @@ import java.util.ArrayList;
 public class BetterLED extends AddressableLED {
   public enum AnimationType { // Is already static.
     LEFT_TO_RIGHT,
-    RIGHT_TO_LEFT
+    RIGHT_TO_LEFT,
+    MIDDLE_TO_ENDS,
+    ENDS_TO_MIDDLE
   }
 
   private AddressableLEDBuffer mainBuffer;
@@ -20,7 +23,7 @@ public class BetterLED extends AddressableLED {
   // The call list will have all animation calls in it,
   // This will run like a scheduler, just on a smaller scale.
   // it will probably have only a single function, but is a an Arraylist just in case.
-  private ArrayList<Runnable> callList;
+  private ArrayList<LEDCommand> commandList;
 
   // The Thread will handle calling the callList and all other requirements for animations.
   private Thread ledUpdateThread;
@@ -30,32 +33,61 @@ public class BetterLED extends AddressableLED {
     mainBuffer = new AddressableLEDBuffer(ledCount);
     this.setLength(mainBuffer.getLength());
     this.start();
-    callList = new ArrayList<>(3); // 3 should be enough on most cases.
+    commandList = new ArrayList<>(10); // 3 should be enough on most cases.
     // Create an update thread that handles animations
+    setupThread();
+    stopAnimation();
+  }
+
+  private void setupThread() {
     ledUpdateThread =
         new Thread(
             () -> {
               for (; ; ) { // Infinity call periodic,
                 periodic();
+                Timer.delay(0.015);
                 // Maybe add a delay?
                 // or should the delay be handled by the respective functions?
               }
             },
             "LED Control Thread");
     ledUpdateThread.start();
-
-    blink(new Color(0, 200, 255));
   }
 
-  public void fill(Color color) {
-    for (int i = 0; i < ledCount; i++) {
+  public int getLedCount() {
+    return ledCount;
+  }
+
+  public void fillColor(Color color, int start, int end) {
+    addToLoop(
+        new LEDCommand(() -> fill(color, start, end), false, "Fill with: " + color.toHexString()));
+  }
+
+  public void fillColor(Color color, int end) {
+    fillColor(color, 0, end);
+  }
+
+  public void fillColor(Color color) {
+    fillColor(color, ledCount);
+  }
+
+  private void fill(Color color, int start, int end) {
+    for (int i = start; i < end; i++) {
       mainBuffer.setLED(i, color);
     }
     this.setData(mainBuffer);
   }
 
+  private void fill(Color color, int end) {
+    fill(color, 0, end);
+  }
+
+  private void fill(Color color) {
+    fill(color, ledCount);
+  }
+
   public void startRainbow() {
-    changeLoopTo(this::rainbowLoop);
+    changeLoopTo(new LEDCommand(this::rainbowLoop, true, "Rainbow"));
   }
 
   public void animateColor(Color color, AnimationType animation) {
@@ -70,35 +102,45 @@ public class BetterLED extends AddressableLED {
       case RIGHT_TO_LEFT:
         changeLoopTo(createRightToLeftAnimationLoop(color, onLEDCount));
         break;
+      case MIDDLE_TO_ENDS:
+        break; // TODO: implement
+      case ENDS_TO_MIDDLE:
+        break; // TODO: implement
     }
   }
 
   public void stopAnimation() {
-    changeLoopTo(() -> {}); // Empty runnable
+    commandList.clear();
   }
 
   public void blink(Color color, int blinkCount) {
     changeLoopTo(
-        () -> {
-          for (int i = 0; i < blinkCount; i++) {
-            fill(color);
-            Timer.delay(0.5);
-            fill(Color.kBlack);
-            Timer.delay(0.5);
-          }
-        });
+        new LEDCommand(
+            () -> {
+              fill(color);
+              Timer.delay(0.5);
+              fill(Color.kBlack);
+              Timer.delay(0.5);
+            },
+            blinkCount,
+            "blink " + blinkCount + " times"));
+  }
+
+  public void blink(Color color, double delaySeconds) {
+    changeLoopTo(
+        new LEDCommand(
+            () -> {
+              fill(color);
+              Timer.delay(delaySeconds);
+              fill(Color.kBlack);
+              Timer.delay(delaySeconds);
+            },
+            true,
+            "blink infinitely"));
   }
 
   public void blink(Color color) {
-    changeLoopTo(
-        () -> {
-          for (; ; ) {
-            fill(color);
-            Timer.delay(0.5);
-            fill(Color.kBlack);
-            Timer.delay(0.5);
-          }
-        });
+    blink(color, 0.2);
   }
 
   /**
@@ -111,18 +153,21 @@ public class BetterLED extends AddressableLED {
    */
   public void breathe(Color color, double delayTime, int max, int min) {
     changeLoopTo(
-        () -> {
-          // Light UP The led
-          for (int i = min; i < max; i++) {
-            fill(new Color(color.red * i, color.green * i, color.blue * i));
-            Timer.delay(delayTime);
-          }
-          // Light DOWN the led
-          for (int i = max; i > min; i--) {
-            fill(new Color(color.red * i, color.green * i, color.blue * i));
-            Timer.delay(delayTime);
-          }
-        });
+        new LEDCommand(
+            () -> {
+              // Light UP The led
+              for (int i = min; i < max; i++) {
+                fill(new Color(color.red * i, color.green * i, color.blue * i));
+                Timer.delay(delayTime);
+              }
+              // Light DOWN the led
+              for (int i = max; i > min; i--) {
+                fill(new Color(color.red * i, color.green * i, color.blue * i));
+                Timer.delay(delayTime);
+              }
+            },
+            true,
+            "breath"));
   }
 
   public void breathe(Color color, double delayTime) {
@@ -133,16 +178,6 @@ public class BetterLED extends AddressableLED {
     breathe(color, 0.01);
   }
 
-  /**
-   * Adds a runnable to the call list, this will be called every loop. You probably don't need to
-   * use this, but it's here if you need it.
-   *
-   * @param func The runnable to add to the call list.
-   */
-  public void addRunnableToLoop(Runnable func) {
-    callList.add(func);
-  }
-
   @Override
   public void setLength(int length) {
     mainBuffer = new AddressableLEDBuffer(length);
@@ -150,15 +185,37 @@ public class BetterLED extends AddressableLED {
     super.setLength(length);
   }
 
-  private void changeLoopTo(Runnable func) {
-    callList.clear(); // Clear the list first
-    callList.add(func); // then add the runnable
+  private void changeLoopTo(LEDCommand func) {
+    commandList.clear(); // Clear the list first
+    commandList.add(func); // then add the runnable
+  }
+
+  public void addToLoop(LEDCommand command) {
+    commandList.add(command);
+  }
+
+  public void removeFromLoop(int amount) {
+    for (int i = 0; i < amount; i++) {
+      if (!commandList.isEmpty()) {
+        commandList.remove(0);
+      }
+    }
+  }
+
+  public void removeFromLoop() {
+    removeFromLoop(1);
   }
 
   private void periodic() {
     // Call any functions in the callList
-    for (var callable : callList) {
-      callable.run();
+    if (commandList.isEmpty()) {
+      return;
+    }
+    var command = commandList.get(0);
+    DataLogManager.log(command.getName());
+    command.execute();
+    if (command.hasEnded()) {
+      commandList.remove(0);
     }
   }
 
@@ -175,31 +232,46 @@ public class BetterLED extends AddressableLED {
     this.setData(mainBuffer);
   }
 
-  private Runnable createLeftToRightAnimationLoop(Color color, int onLEDCount) {
-    return () -> {
-      final int start = currentAnimationIndex > onLEDCount ? currentAnimationIndex - onLEDCount : 0;
-      for (int i = start; i < ledCount && i < currentAnimationIndex; i++) {
-        mainBuffer.setLED(i, color);
-      }
-      currentAnimationIndex++;
-      currentAnimationIndex %= ledCount;
-      this.setData(mainBuffer);
-      Timer.delay(0.1);
-    };
+  private LEDCommand createLeftToRightAnimationLoop(Color color, int onLEDCount) {
+    return new LEDCommand(
+        () -> {
+          final int start =
+              currentAnimationIndex > onLEDCount ? currentAnimationIndex - onLEDCount : 0;
+          for (int i = start; i < ledCount && i < currentAnimationIndex; i++) {
+            mainBuffer.setLED(i, color);
+          }
+          currentAnimationIndex++;
+          currentAnimationIndex %= ledCount;
+          this.setData(mainBuffer);
+          Timer.delay(0.1);
+        },
+        true,
+        "Left To Right");
   }
 
-  private Runnable createRightToLeftAnimationLoop(Color color, int onLEDCount) {
-    return () -> {
-      final int start =
-          currentAnimationIndex < onLEDCount ? currentAnimationIndex + onLEDCount : ledCount;
-      for (int i = start; i > 0 && i > currentAnimationIndex; i--) {
-        mainBuffer.setLED(i, color);
-      }
-      currentAnimationIndex--;
-      currentAnimationIndex =
-          Math.floorMod(currentAnimationIndex, ledCount); // ! DO NOT USE % WITH NEGATIVE NUMBERS.
-      this.setData(mainBuffer);
-      Timer.delay(0.1);
-    };
+  private LEDCommand createRightToLeftAnimationLoop(Color color, int onLEDCount) {
+    return new LEDCommand(
+        () -> {
+          final int start =
+              currentAnimationIndex < onLEDCount ? currentAnimationIndex + onLEDCount : ledCount;
+          for (int i = start; i > 0 && i > currentAnimationIndex; i--) {
+            mainBuffer.setLED(i, color);
+          }
+          currentAnimationIndex--;
+          currentAnimationIndex =
+              Math.floorMod(
+                  currentAnimationIndex, ledCount); // ! DO NOT USE % WITH NEGATIVE NUMBERS.
+          this.setData(mainBuffer);
+          Timer.delay(0.1);
+        },
+        true,
+        "Right to Left");
+  }
+
+  public String getCurrentCommandName() {
+    if (commandList.isEmpty()) {
+      return "Stopped";
+    }
+    return commandList.get(0).toString();
   }
 }

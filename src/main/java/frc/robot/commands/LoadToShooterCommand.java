@@ -10,7 +10,7 @@ public class LoadToShooterCommand extends ParallelRaceGroup {
     super(
         intakeSubsystem.run(
             () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true)),
-        new UntilWithTimeCommand(0.5, () -> !intakeSubsystem.hasNote())
+        new WaitANDConditionCommand(0.5, () -> !intakeSubsystem.hasNote())
             .alongWith(new PrintCommand("Loading To Shooter"))
             .andThen(new PrintCommand("Loaded to Shooter!")));
   }

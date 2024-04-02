@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
+import frc.robot.commands.LoadToShooterCommand;
 import frc.robot.commands.VibrateControllerCommand;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;

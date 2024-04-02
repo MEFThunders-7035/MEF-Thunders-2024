@@ -28,10 +28,11 @@ public class DriveFacingShooter extends SequentialCommandGroup {
 
     return driveSubsystem.run(
         () ->
-            driveSubsystem.drive(
+            driveSubsystem.driveWithExtras(
                 xSpeed.getAsDouble(),
                 ySpeed.getAsDouble(),
                 rotController.calculate(
-                    driveSubsystem.getRotationDifferenceToShooter().getRadians())));
+                    driveSubsystem.getRotationDifferenceToShooter().getRadians()),
+                0));
   }
 }

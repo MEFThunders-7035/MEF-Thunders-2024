@@ -15,10 +15,6 @@ public class ReallySimpleAuto extends SequentialCommandGroup {
       DriveSubsystem driveSubsystem) {
     super(
         new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem),
-        new WaitCommand(1)
-            .andThen(
-                driveSubsystem
-                    .run(() -> driveSubsystem.drive(-0.25, 0, 0))
-                    .raceWith(new WaitCommand(2.5))));
+        driveSubsystem.run(() -> driveSubsystem.drive(-0.25, 0, 0)).raceWith(new WaitCommand(2.5)));
   }
 }

@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -12,8 +13,8 @@ public class ShootToAmpCommand extends SequentialCommandGroup {
       ArmSubsystem armSubsystem) {
     super(
         new MoveArmToAmp(armSubsystem).raceWith(new BasicRunShooterCommand(shooterSubsystem)),
-        intakeSubsystem
-            .loadToShooterCommand()
-            .raceWith(new BasicRunShooterCommand(shooterSubsystem)));
+        new ParallelRaceGroup(
+            new LoadToShooterCommand(intakeSubsystem),
+            new BasicRunShooterCommand(shooterSubsystem)));
   }
 }

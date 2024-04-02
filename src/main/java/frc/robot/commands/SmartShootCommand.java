@@ -17,7 +17,7 @@ public class SmartShootCommand extends ParallelRaceGroup {
             new BasicRunShooterCommand(shooterSubsystem, waitTime),
             new ParallelRaceGroup(
                 new BasicRunShooterCommand(shooterSubsystem),
-                intakeSubsystem.loadToShooterCommand())));
+                new LoadToShooterCommand(intakeSubsystem))));
   }
 
   public SmartShootCommand(

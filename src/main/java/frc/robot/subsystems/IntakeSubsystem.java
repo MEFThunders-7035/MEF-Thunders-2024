@@ -108,10 +108,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command loadToShooterCommand() {
-    return run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true))
-        .onlyWhile(this::hasNote)
-        .andThen(new PrintCommand("Loaded to Shooter!"))
-        .alongWith(new PrintCommand("Loading To Shooter"));
+    return new LoadToShooterCommand(this);
   }
 
   public Command vibrateControllerOnNoteCommand(XboxController controller) {

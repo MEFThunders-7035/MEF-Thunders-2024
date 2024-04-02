@@ -113,7 +113,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command vibrateControllerOnNoteCommand(XboxController controller) {
-    return new VibrateControllerCommand(controller, 2, 1, 0.1)
+    return new VibrateControllerCommand(controller, 2, 1, 0.2)
         .alongWith(new PrintCommand("Note!"))
         .beforeStarting(new WaitUntilCommand(this::hasNote));
   }

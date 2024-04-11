@@ -19,14 +19,15 @@ import frc.utils.sim_utils.ColorSensorV3Wrapped;
 public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   private final CANSparkMAXWrapped armIntake;
   private final CANSparkMAXWrapped groundIntake;
-  private final ColorSensorV3Wrapped colorSensor =
-      new ColorSensorV3Wrapped(ColorSensorConstants.kColorSensorPort);
+  private final ColorSensorV3Wrapped colorSensor;
+  private boolean isForced = false;
 
   public IntakeSubsystem() {
     armIntake = new CANSparkMAXWrapped(IntakeConstants.kArmIntakeMotorCanID, MotorType.kBrushless);
     groundIntake =
         new CANSparkMAXWrapped(IntakeConstants.kGroundIntakeMotorCanID, MotorType.kBrushless);
     setupIntakeMotors();
+    colorSensor = new ColorSensorV3Wrapped(ColorSensorConstants.kColorSensorPort);
 
     new Thread(
             () -> {
@@ -84,18 +85,18 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
       armIntake.set(armSpeed);
     }
 
-    groundIntake.set(groundSpeed);
-  }
-
-  public void setIntakeSpeed(double speed, boolean force) {
-    if (speed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
-      armIntake.set(0);
+    if (groundSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
       groundIntake.set(0);
       return;
     }
 
-    armIntake.set(speed);
-    groundIntake.set(speed);
+    isForced = force;
+
+    groundIntake.set(groundSpeed);
+  }
+
+  public void setIntakeSpeed(double speed, boolean force) {
+    setIntakeSpeed(speed, speed, force);
   }
 
   public void setIntakeSpeed(double speed) {
@@ -103,7 +104,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public void checkIfHasNote() {
-    if (hasNote() && armIntake.get() > 0) {
+    if (hasNote() && armIntake.get() > 0 && !isForced) {
       setIntakeSpeed(0);
     }
   }

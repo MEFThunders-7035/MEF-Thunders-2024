@@ -175,7 +175,7 @@ public class RobotContainer {
   }
 
   private void configureMidiBindings() {
-    // This is incase the note detection system fails.
+    // This is incase load to shooter command fails.
     new JoystickButton(midiController, 1) // Force Push intake on midi
         .whileTrue(intakeSubsystem.run(() -> intakeSubsystem.setIntakeSpeed(1, true)));
 

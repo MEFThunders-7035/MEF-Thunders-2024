@@ -52,8 +52,17 @@ class IntakeTests {
         0.001,
         "Intake motor should be running when a note is not detected");
     ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
-    Timer.delay(0.1);
+    Timer.delay(0.1); // wait until note is detected
     assertEquals(0, intakeMotor.get(), 0.001, "Intake motor should stop when a note is detected");
+  }
+
+  @Test
+  void testIntakeForcePushes() {
+    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    intakeSubsystem.setIntakeSpeed(0.5, 0, true); // force push note out
+    assertEquals(0.5, intakeMotor.get(), 0.001, "Intake Motor Should Run when force pushed");
+    Timer.delay(0.1);
+    assertEquals(0.5, intakeMotor.get(), 0.001, "Intake motor should continue to run when forced");
   }
 
   @Test

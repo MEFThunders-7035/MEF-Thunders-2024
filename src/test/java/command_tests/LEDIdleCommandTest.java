@@ -53,7 +53,6 @@ class LEDIdleCommandTest {
     DriverStationSim.setDsAttached(true);
     DriverStationSim.setEnabled(true);
     DriverStationSim.notifyNewData(); // ! Breaks without this
-    commandScheduler.run();
     commandScheduler.schedule(
         new LEDIdleCommand(ledSubsystem, intakeSubsystem).ignoringDisable(true));
 

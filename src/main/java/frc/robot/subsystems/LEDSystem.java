@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class LEDSystem {
-  private static final LEDSubsystem ledSubsystemInstance = new LEDSubsystem();
+  private static LEDSubsystem ledSubsystemInstance = new LEDSubsystem();
 
   private LEDSystem() {}
 
@@ -17,5 +17,18 @@ public final class LEDSystem {
 
   public static Command getBlinkRedCommand() {
     return ledSubsystemInstance.getRedBlinkCommand();
+  }
+
+  public static void resetLEDSubsystem() {
+    if (ledSubsystemInstance == null) {
+      ledSubsystemInstance = new LEDSubsystem();
+      return;
+    }
+    ledSubsystemInstance.close();
+    ledSubsystemInstance = new LEDSubsystem();
+  }
+
+  public static void changeLEDSubsystemInstance(LEDSubsystem ledSubsystem) {
+    ledSubsystemInstance = ledSubsystem;
   }
 }

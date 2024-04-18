@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BetterLED extends AddressableLED {
   public enum AnimationType { // Is already static.
@@ -19,6 +20,9 @@ public class BetterLED extends AddressableLED {
   private int ledCount;
   private int rainbowFirstPixelHue = 0;
   private int currentAnimationIndex = 0;
+
+  private ReentrantLock ledMutex = new ReentrantLock(true);
+  private volatile boolean isThreadKilled = false;
 
   // The call list will have all animation calls in it,
   // This will run like a scheduler, just on a smaller scale.
@@ -40,18 +44,57 @@ public class BetterLED extends AddressableLED {
   }
 
   private void setupThread() {
+    isThreadKilled = false; // Reset the kill flag on setup of thread
     ledUpdateThread =
         new Thread(
             () -> {
               for (; ; ) { // Infinity call periodic,
-                periodic();
+                ledMutex.lock();
+                try {
+                  periodic();
+                } finally {
+                  ledMutex.unlock();
+                }
                 Timer.delay(0.015);
-                // Maybe add a delay?
-                // or should the delay be handled by the respective functions?
+
+                // Kill the thread if it has ben set to kill.
+                if (isThreadKilled) {
+                  break;
+                }
               }
             },
             "LED Control Thread");
+    ledUpdateThread.setDaemon(true);
     ledUpdateThread.start();
+  }
+
+  @Override
+  public void close() {
+    isThreadKilled = true;
+    super.close();
+  }
+
+  /**
+   * Check if the thread is alive and if not, restart it.
+   *
+   * @return thread got restarted
+   *     <p>true if restarted, false if not
+   */
+  public boolean checkThreadStatus() {
+    if (!ledUpdateThread.isAlive()) {
+      setupThread(); // restart thread
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns the buffer thats used. You should never need to use this except debugging or similar.
+   *
+   * @return The main buffer used by the LED instance.
+   */
+  public AddressableLEDBuffer getBuffer() {
+    return mainBuffer;
   }
 
   public int getLedCount() {
@@ -186,19 +229,34 @@ public class BetterLED extends AddressableLED {
   }
 
   private void changeLoopTo(LEDCommand func) {
-    commandList.clear(); // Clear the list first
-    commandList.add(func); // then add the runnable
+    ledMutex.lock();
+    try {
+      commandList.clear(); // Clear the list first
+      commandList.add(func); // then add the runnable
+    } finally {
+      ledMutex.unlock();
+    }
   }
 
   public void addToLoop(LEDCommand command) {
-    commandList.add(command);
+    ledMutex.lock();
+    try {
+      commandList.add(command);
+    } finally {
+      ledMutex.unlock();
+    }
   }
 
   public void removeFromLoop(int amount) {
-    for (int i = 0; i < amount; i++) {
-      if (!commandList.isEmpty()) {
-        commandList.remove(0);
+    ledMutex.lock();
+    try {
+      for (int i = 0; i < amount; i++) {
+        if (!commandList.isEmpty()) {
+          commandList.remove(0);
+        }
       }
+    } finally {
+      ledMutex.unlock();
     }
   }
 

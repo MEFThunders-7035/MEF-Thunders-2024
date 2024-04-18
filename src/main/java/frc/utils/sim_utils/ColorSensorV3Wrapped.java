@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable {
-  private static ColorSensorV3 colorSensor = null;
+  private static ColorSensorV3 colorSensor;
   private static final int[] rgbd = new int[4]; // Red, Green, Blue, and Distance
 
   public ColorSensorV3Wrapped(I2C.Port port) {

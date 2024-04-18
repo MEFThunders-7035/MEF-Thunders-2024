@@ -9,7 +9,7 @@ public class LEDTestUtils {
   public static void checkForColorInAll(
       LEDSubsystem ledSubsystem, Color colorItShouldBe, String message) {
     for (int i = 0; i < ledSubsystem.getLedCount(); i++) {
-      assertEquals(colorItShouldBe, getColorAtIndex(ledSubsystem, i), message);
+      assertEquals(colorItShouldBe, getColorAtIndex(ledSubsystem, i), message + " at index: " + i);
     }
   }
 

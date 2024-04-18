@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants;
 import frc.utils.BetterLED;
 
-public class LEDSubsystem extends SubsystemBase {
+public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
   BetterLED strip;
   Color lastSetColor = new Color();
   Color lastSetBlinkingColor = new Color();
@@ -20,6 +20,15 @@ public class LEDSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putString("LED Currently Running", strip.getCurrentCommandName());
+  }
+
+  @Override
+  public void close() {
+    strip.close();
+  }
+
+  public int getLedCount() {
+    return strip.getLedCount();
   }
 
   public void fill(Color color) {
@@ -68,13 +77,17 @@ public class LEDSubsystem extends SubsystemBase {
     }
   }
 
-  public void blink(Color color) {
+  public void blink(Color color, double delaySeconds) {
     if (lastSetBlinkingColor.equals(color)) {
       return;
     }
     lastSetColor = new Color(); // Reset back to 0
     lastSetBlinkingColor = color;
-    strip.blink(color);
+    strip.blink(color, delaySeconds);
+  }
+
+  public void blink(Color color) {
+    blink(color, 0.2);
   }
 
   public void blinkRed() {

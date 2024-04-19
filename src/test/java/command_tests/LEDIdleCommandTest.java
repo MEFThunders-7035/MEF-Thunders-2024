@@ -2,38 +2,32 @@ package command_tests;
 
 import static utils.LEDTestUtils.checkForColorInAll;
 
+import command_tests.utils.CommandTestBase;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.commands.led_commands.LEDIdleCommand;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.LEDSubsystem;
-import frc.robot.subsystems.LEDSystem;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class LEDIdleCommandTest {
-  private LEDSubsystem ledSubsystem;
+class LEDIdleCommandTest extends CommandTestBase {
   private IntakeSubsystem intakeSubsystem;
-  private CommandScheduler commandScheduler;
 
   @BeforeEach
   public void setUp() {
+    super.setUp();
     HAL.initialize(500, 0);
-    ledSubsystem = LEDSystem.getInstance();
     intakeSubsystem = new IntakeSubsystem();
-    commandScheduler = CommandScheduler.getInstance();
   }
 
   @AfterEach
   public void tearDown() {
+    super.tearDown();
     intakeSubsystem.close();
-    LEDSystem.resetLEDSubsystem(); // closes and re init's ledSubsystem
-    commandScheduler.close();
   }
 
   @Test

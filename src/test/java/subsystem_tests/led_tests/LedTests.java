@@ -1,4 +1,4 @@
-package subsystem_tests.led_integration_tests;
+package subsystem_tests.led_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static utils.LEDTestUtils.checkForColorInAll;

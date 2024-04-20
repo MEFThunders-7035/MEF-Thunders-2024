@@ -1,5 +1,6 @@
 package command_tests.arm_tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static utils.LEDTestUtils.checkForColorInAll;
 
@@ -10,6 +11,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.utils.sim_utils.ColorSensorV3Wrapped;
 import frc.utils.sim_utils.SparkMAXSimAddon;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,5 +53,14 @@ class BasicIntakeTest extends CommandTestBase {
     checkForColorInAll(ledSubsystem, Color.kRed, "Color should be red when started");
     Timer.delay(0.2);
     checkForColorInAll(ledSubsystem, Color.kBlack, "Color should be closed when blinking red");
+  }
+
+  @Test
+  void testCommandEnds() {
+    commandScheduler.run();
+    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    commandScheduler.run();
+    assertEquals(true, intakeCommand.isFinished(), "Command should be finished when ending");
+    assertEquals(0, intakeMotor.get(), "Motor should stop after detecting color");
   }
 }

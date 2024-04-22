@@ -1,4 +1,4 @@
-package utils;
+package subsystem_tests.led_tests.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

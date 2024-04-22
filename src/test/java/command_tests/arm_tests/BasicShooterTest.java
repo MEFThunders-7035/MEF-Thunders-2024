@@ -1,7 +1,7 @@
 package command_tests.arm_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static utils.LEDTestUtils.testAtTime;
+import static subsystem_tests.led_tests.utils.LEDTestUtils.testAtTime;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.Timer;

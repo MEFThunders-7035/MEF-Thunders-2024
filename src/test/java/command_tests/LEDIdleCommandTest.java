@@ -1,6 +1,6 @@
 package command_tests;
 
-import static utils.LEDTestUtils.checkForColorInAll;
+import static subsystem_tests.led_tests.utils.LEDTestUtils.checkForColorInAll;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.hal.HAL;

@@ -2,7 +2,7 @@ package command_tests.arm_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static utils.LEDTestUtils.checkForColorInAll;
+import static subsystem_tests.led_tests.utils.LEDTestUtils.checkForColorInAll;
 
 import com.revrobotics.CANSparkMax;
 import command_tests.utils.CommandTestBase;

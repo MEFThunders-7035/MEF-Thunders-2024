@@ -1,8 +1,8 @@
 package subsystem_tests.led_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static utils.LEDTestUtils.checkForColorInAll;
-import static utils.LEDTestUtils.getColorAtIndex;
+import static subsystem_tests.led_tests.utils.LEDTestUtils.checkForColorInAll;
+import static subsystem_tests.led_tests.utils.LEDTestUtils.getColorAtIndex;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.wpilibj.Timer;

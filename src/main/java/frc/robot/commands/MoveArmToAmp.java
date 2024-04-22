@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
 
 public class MoveArmToAmp extends SequentialCommandGroup {
-  MoveArmToAmp(ArmSubsystem armSubsystem) {
+  public MoveArmToAmp(ArmSubsystem armSubsystem) {
     super(
         armSubsystem
             .run(() -> armSubsystem.setArmToPosition(0.5))

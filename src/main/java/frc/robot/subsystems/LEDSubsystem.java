@@ -97,6 +97,12 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     blink(new Color(255, 0, 0));
   }
 
+  /**
+   * Fills the led's until the given percentage.
+   *
+   * @param percentage a value between 0 and 1
+   * @param color the color to fill with
+   */
   public void fillPercentageWithColor(double percentage, Color color) {
     fill(color, (int) (strip.getLedCount() * percentage), true);
   }

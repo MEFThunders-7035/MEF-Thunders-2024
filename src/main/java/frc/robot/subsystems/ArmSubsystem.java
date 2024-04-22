@@ -16,7 +16,7 @@ import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
-public class ArmSubsystem extends SubsystemBase {
+public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   // We only have RelativeEncoder for now. Its better than nothing.
   private final CANSparkMAXWrapped arm;
   private final CANSparkMAXWrapped armFollower;
@@ -61,6 +61,12 @@ public class ArmSubsystem extends SubsystemBase {
     arm.setSmartCurrentLimit(IntakeConstants.kSmartCurrentLimit);
 
     arm.burnFlash();
+  }
+
+  @Override
+  public void close() {
+    arm.close();
+    armFollower.close();
   }
 
   /**

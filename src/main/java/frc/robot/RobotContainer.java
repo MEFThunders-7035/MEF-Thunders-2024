@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
-import frc.robot.commands.ReallySimpleAuto;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
@@ -58,9 +57,6 @@ public class RobotContainer {
         "Shoot To Shooter",
         new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
-    autoChooser.addOption(
-        "Shoot & Back",
-        new ReallySimpleAuto(armSubsystem, intakeSubsystem, shooterSubsystem, driveSubsystem));
     SmartDashboard.putData("Auto Chooser", autoChooser);
     if (RobotBase.isSimulation()) {
       simInit();

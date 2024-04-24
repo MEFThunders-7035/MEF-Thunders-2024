@@ -24,15 +24,15 @@ public class VibrateControllerCommand extends SequentialCommandGroup {
   private static Command createVibrateControllerCommand(
       XboxController controller, int repetitions, double intensity, double duration) {
 
-    Command command =
-        new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, intensity));
+    SequentialCommandGroup command =
+        new SequentialCommandGroup(
+            new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, intensity)));
     for (int i = 0; i < repetitions; i++) {
-      command =
-          command
-              .andThen(new WaitCommand(duration))
-              .andThen(() -> controller.setRumble(RumbleType.kBothRumble, 0))
-              .andThen(new WaitCommand(duration))
-              .andThen(() -> controller.setRumble(RumbleType.kBothRumble, intensity));
+      command.addCommands(
+          new WaitCommand(duration),
+          new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 0)),
+          new WaitCommand(duration),
+          new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, intensity)));
     }
     return command.finallyDo(() -> controller.setRumble(RumbleType.kBothRumble, 0));
   }

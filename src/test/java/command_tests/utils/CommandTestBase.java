@@ -28,6 +28,8 @@ public class CommandTestBase {
   protected void tearDown() {
     LEDSystem.resetLEDSubsystem();
     commandScheduler.cancelAll();
+    commandScheduler.unregisterAllSubsystems(); // ! breaks all test tests if not done
     commandScheduler.close();
+    HAL.shutdown();
   }
 }

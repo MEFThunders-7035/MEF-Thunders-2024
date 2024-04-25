@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 
 class VibrateControllerCommandTest extends CommandTestBase {
   private VibrateControllerCommand vibrateControllerCommand;
-  private XboxController controller;
   private XboxControllerSim controllerSim;
 
   private static final double kDelta = 0.01;
@@ -27,7 +26,7 @@ class VibrateControllerCommandTest extends CommandTestBase {
   public void setUp() {
     super.setUp();
 
-    controller = new XboxController(1);
+    XboxController controller = new XboxController(1);
     controllerSim = new XboxControllerSim(1);
     vibrateControllerCommand =
         new VibrateControllerCommand(controller, kRepetitions, kIntensity, kWaitTime);

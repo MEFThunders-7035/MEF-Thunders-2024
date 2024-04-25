@@ -55,7 +55,7 @@ class VibrateControllerCommandTest extends CommandTestBase {
 
   @Test
   void testItRepeats() {
-    // run command scheduler twice to end wait command and start vibration
+    // run command scheduler twice to end wait command and start vibration command
     for (int i = 0; i < kRepetitions; i++) {
       commandScheduler.run();
       commandScheduler.run();

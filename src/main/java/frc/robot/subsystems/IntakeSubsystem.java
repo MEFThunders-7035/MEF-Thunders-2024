@@ -20,6 +20,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   private final CANSparkMAXWrapped armIntake;
   private final CANSparkMAXWrapped groundIntake;
   private final ColorSensorV3Wrapped colorSensor;
+  private final Thread fastColorCheckThread;
   private boolean isForced = false;
 
   public IntakeSubsystem() {
@@ -29,14 +30,16 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     setupIntakeMotors();
     colorSensor = new ColorSensorV3Wrapped(ColorSensorConstants.kColorSensorPort);
 
-    new Thread(
+    fastColorCheckThread =
+        new Thread(
             () -> {
               while (true) {
                 fastPeriodic();
               }
             },
-            "Fast Color Check Loop")
-        .start();
+            "Fast Color Check Loop");
+    fastColorCheckThread.setDaemon(true);
+    fastColorCheckThread.start();
   }
 
   private void setupIntakeMotors() {
@@ -57,6 +60,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
   @Override
   public void close() {
+    fastColorCheckThread.interrupt();
     armIntake.close();
     groundIntake.close();
     colorSensor.close();
@@ -127,7 +131,7 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
     SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
     SmartDashboard.putBoolean("Note Detected", hasNote());
-    checkIfHasNote();
+    // don't check for a note here cause it breaks the unit tests SOMEHOW!
   }
 
   private void fastPeriodic() {

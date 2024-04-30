@@ -7,6 +7,7 @@ import frc.robot.subsystems.LEDSystem;
 public class LEDLoadingWaitCommand extends WaitCommand {
   private double seconds;
   private Color colorToFill;
+  public static final Color DEFAULT_COLOR = new Color(0, 200, 255);
 
   public LEDLoadingWaitCommand(double seconds, Color colorToFill) {
     super(seconds);
@@ -16,7 +17,7 @@ public class LEDLoadingWaitCommand extends WaitCommand {
   }
 
   public LEDLoadingWaitCommand(double seconds) {
-    this(seconds, new Color(0, 200, 255));
+    this(seconds, DEFAULT_COLOR);
   }
 
   @Override

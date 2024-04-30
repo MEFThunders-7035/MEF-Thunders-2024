@@ -18,4 +18,8 @@ public class CANSparkMAXWrapped extends CANSparkMax {
     }
     super.close();
   }
+
+  public boolean isThisClosed() {
+    return isClosed.get();
+  }
 }

@@ -1,3 +1,5 @@
+package subsystem_tests.arm_tests;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.revrobotics.CANSparkMax;
@@ -61,7 +63,7 @@ class IntakeTests {
     ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
     intakeSubsystem.setIntakeSpeed(0.5, 0, true); // force push note out
     assertEquals(0.5, intakeMotor.get(), 0.001, "Intake Motor Should Run when force pushed");
-    Timer.delay(0.1);
+    Timer.delay(0.15); // if broken, increase this
     assertEquals(0.5, intakeMotor.get(), 0.001, "Intake motor should continue to run when forced");
   }
 

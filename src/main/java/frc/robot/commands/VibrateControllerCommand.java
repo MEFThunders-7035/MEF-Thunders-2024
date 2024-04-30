@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.commands.util_commands.RepeatForCommand;
 
 public class VibrateControllerCommand extends SequentialCommandGroup {
   public VibrateControllerCommand(
@@ -24,16 +25,13 @@ public class VibrateControllerCommand extends SequentialCommandGroup {
   private static Command createVibrateControllerCommand(
       XboxController controller, int repetitions, double intensity, double duration) {
 
-    Command command =
-        new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, intensity));
-    for (int i = 0; i < repetitions; i++) {
-      command =
-          command
-              .andThen(new WaitCommand(duration))
-              .andThen(() -> controller.setRumble(RumbleType.kBothRumble, 0))
-              .andThen(new WaitCommand(duration))
-              .andThen(() -> controller.setRumble(RumbleType.kBothRumble, intensity));
-    }
-    return command.finallyDo(() -> controller.setRumble(RumbleType.kBothRumble, 0));
+    SequentialCommandGroup toRepeatCommand =
+        new SequentialCommandGroup(
+            new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, intensity)), //
+            new WaitCommand(duration),
+            new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 0)),
+            new WaitCommand(duration));
+
+    return new RepeatForCommand(toRepeatCommand, repetitions);
   }
 }

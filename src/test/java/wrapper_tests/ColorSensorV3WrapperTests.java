@@ -1,3 +1,5 @@
+package wrapper_tests;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import edu.wpi.first.hal.HAL;
@@ -23,6 +25,12 @@ class ColorSensorV3WrapperTests {
 
   @Test
   void testColorSensorV3Wrapping() {
+    assertEquals(
+        colorSensor, ColorSensorV3Wrapped.getColorSensor(), "ColorSensorV3 should be wrapped");
+  }
+
+  @Test
+  void testColorSensorV3ValueChanging() {
     ColorSensorV3Wrapped.setRGBD(2500, 300, 100, 900);
     assertEquals(2500, colorSensor.getRed());
     assertEquals(300, colorSensor.getGreen());

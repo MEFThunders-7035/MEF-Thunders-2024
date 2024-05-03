@@ -21,13 +21,13 @@ public class BetterLED extends AddressableLED {
   private int rainbowFirstPixelHue = 0;
   private int currentAnimationIndex = 0;
 
-  private ReentrantLock ledMutex = new ReentrantLock(true);
+  private final ReentrantLock ledMutex = new ReentrantLock(true);
   private volatile boolean isThreadKilled = false;
 
   // The call list will have all animation calls in it,
   // This will run like a scheduler, just on a smaller scale.
-  // it will probably have only a single function, but is a an Arraylist just in case.
-  private ArrayList<LEDCommand> commandList;
+  // it will probably have only a single function, but is an Arraylist just in case.
+  private final ArrayList<LEDCommand> commandList;
 
   // The Thread will handle calling the callList and all other requirements for animations.
   private Thread ledUpdateThread;

@@ -2,6 +2,7 @@ package frc.utils;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.Constants.MagicConstants.ArmQuadraticFunction;
 
 public class ExtraFunctions {
@@ -31,5 +32,11 @@ public class ExtraFunctions {
     return ArmQuadraticFunction.kXSquared * (Math.pow(distance, 2))
         + ArmQuadraticFunction.kX * distance
         + ArmQuadraticFunction.kConstant;
+  }
+
+  public static Color getAllianceColor() {
+    var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+
+    return alliance == Alliance.Blue ? Color.kSkyBlue : Color.kFirstRed;
   }
 }

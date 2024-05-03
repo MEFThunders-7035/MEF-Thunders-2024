@@ -48,7 +48,7 @@ public class BetterLED extends AddressableLED {
     ledUpdateThread =
         new Thread(
             () -> {
-              for (; ; ) { // Infinity call periodic,
+              do { // Infinity call periodic,
                 ledMutex.lock();
                 try {
                   periodic();
@@ -57,11 +57,8 @@ public class BetterLED extends AddressableLED {
                 }
                 Timer.delay(0.015);
 
-                // Kill the thread if it has ben set to kill.
-                if (isThreadKilled) {
-                  break;
-                }
-              }
+                // Kill the thread if it has been set to kill.
+              } while (!isThreadKilled);
             },
             "LED Control Thread");
     ledUpdateThread.setDaemon(true);

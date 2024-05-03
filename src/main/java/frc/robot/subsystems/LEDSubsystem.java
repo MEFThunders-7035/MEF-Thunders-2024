@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,6 +38,7 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     }
     strip.fillColor(color);
     lastSetColor = color;
+    lastSetBlinkingColor = Color.kBlack;
     isBlinkingRed = false;
   }
 
@@ -50,10 +52,20 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     }
     strip.fillColor(color, count);
     lastSetColor = color;
+    lastSetBlinkingColor = Color.kBlack;
   }
 
   public Command getRedBlinkCommand() {
     return this.run(this::blinkRed)
+        .finallyDo(
+            () -> {
+              strip.removeFromLoop();
+              lastSetBlinkingColor = new Color();
+            });
+  }
+
+  public Command getBlinkColorCommand(Color color) {
+    return this.run(() -> blink(color))
         .finallyDo(
             () -> {
               strip.removeFromLoop();
@@ -104,6 +116,7 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
    * @param color the color to fill with
    */
   public void fillPercentageWithColor(double percentage, Color color) {
+    percentage = MathUtil.clamp(percentage, 0.0, 1.0);
     fill(color, (int) (strip.getLedCount() * percentage), true);
   }
 

@@ -2,6 +2,7 @@ package subsystem_tests.led_tests.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.commands.led_commands.LEDLoadingWaitCommand;
@@ -29,7 +30,10 @@ public class LEDTestUtils {
    */
   public static void testAtTime(LEDSubsystem ledSubsystem, double startTime, double waitTime) {
     double endTime = Timer.getFPGATimestamp();
-    int untilIndex = (int) (ledSubsystem.getLedCount() * ((endTime - startTime) / waitTime));
+    int untilIndex =
+        (int)
+            (ledSubsystem.getLedCount()
+                * MathUtil.clamp((endTime - startTime) / waitTime, 0.0, 1.0));
     Timer.delay(0.1); // let led loop do its thing
     checkForColorInAll(
         ledSubsystem,

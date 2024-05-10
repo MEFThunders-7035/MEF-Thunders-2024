@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.simulation.SimHooks;
 import edu.wpi.first.wpilibj.simulation.XboxControllerSim;
 import frc.robot.commands.VibrateControllerCommand;
 import org.junit.jupiter.api.AfterEach;
@@ -47,7 +47,7 @@ class VibrateControllerCommandTest extends CommandTestBase {
   @Test
   void testItStopsVibrating() {
     commandScheduler.run();
-    Timer.delay(kWaitTime);
+    SimHooks.stepTiming(kWaitTime);
     commandScheduler.run();
     assertEquals(0, controllerSim.getRumble(RumbleType.kLeftRumble), kDelta);
   }
@@ -63,7 +63,7 @@ class VibrateControllerCommandTest extends CommandTestBase {
           controllerSim.getRumble(RumbleType.kLeftRumble),
           kDelta,
           "controller should vibrate at index: " + i);
-      Timer.delay(kWaitTime + 0.1);
+      SimHooks.stepTiming(kWaitTime + 0.1);
       commandScheduler.run();
       commandScheduler.run();
       assertEquals(
@@ -71,7 +71,7 @@ class VibrateControllerCommandTest extends CommandTestBase {
           controllerSim.getRumble(RumbleType.kLeftRumble),
           kDelta,
           "controller should stop vibrating at index: " + i);
-      Timer.delay(kWaitTime + 0.1);
+      SimHooks.stepTiming(kWaitTime + 0.1);
       commandScheduler.run();
       commandScheduler.run();
     }

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import command_tests.utils.CommandTestBase;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.simulation.SimHooks;
 import frc.robot.commands.WaitANDConditionCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class WaitANDConditionCommandTest extends CommandTestBase {
   @Test
   void testItCompletesAfterTime() {
     commandScheduler.run();
-    Timer.delay(kWaitTime);
+    SimHooks.stepTiming(kWaitTime);
     commandScheduler.run();
     assertFalse(
         waitConditionCommand.isFinished(),
@@ -54,7 +54,7 @@ class WaitANDConditionCommandTest extends CommandTestBase {
   void testItFinishesAfterAll() {
     commandScheduler.run();
     condition = true;
-    Timer.delay(kWaitTime);
+    SimHooks.stepTiming(kWaitTime);
     commandScheduler.run();
     assertTrue(waitConditionCommand.isFinished(), "Command should finish after time and condition");
   }

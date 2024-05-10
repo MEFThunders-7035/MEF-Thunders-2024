@@ -6,6 +6,7 @@ import static subsystem_tests.led_tests.utils.LEDTestUtils.testAtTime;
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
+import edu.wpi.first.wpilibj.simulation.SimHooks;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.BasicRunShooterCommand;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -44,7 +45,7 @@ class BasicShooterTest extends CommandTestBase {
         ShooterConstants.kShooterSpeed,
         shooterMotor.getSpeed(),
         "Shooter motor should be at shooter speed");
-    Timer.delay(kWaitTime);
+    SimHooks.stepTiming(kWaitTime);
     commandScheduler.run();
     // Motor should be at 0 after waitTime
     assertEquals(
@@ -57,7 +58,7 @@ class BasicShooterTest extends CommandTestBase {
   void testLEDLoading() {
     double startTime = Timer.getFPGATimestamp();
     commandScheduler.run();
-    Timer.delay(kWaitTime); // load waitTime
+    SimHooks.stepTiming(kWaitTime); // load waitTime
     commandScheduler.run();
     testAtTime(ledSubsystem, startTime, kWaitTime);
   }

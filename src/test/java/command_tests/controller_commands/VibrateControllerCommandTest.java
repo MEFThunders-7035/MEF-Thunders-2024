@@ -53,6 +53,22 @@ class VibrateControllerCommandTest extends CommandTestBase {
   }
 
   @Test
+  void testStopOnInterrupt() {
+    commandScheduler.run();
+    SimHooks.stepTiming(kWaitTime);
+    commandScheduler.run();
+    assertEquals(0, controllerSim.getRumble(RumbleType.kLeftRumble), kDelta);
+    commandScheduler.run();
+    SimHooks.stepTiming(kWaitTime);
+    commandScheduler.run();
+    commandScheduler.run();
+    assertEquals(kIntensity, controllerSim.getRumble(RumbleType.kLeftRumble), kDelta);
+    vibrateControllerCommand.cancel();
+    commandScheduler.run();
+    assertEquals(0, controllerSim.getRumble(RumbleType.kLeftRumble), kDelta);
+  }
+
+  @Test
   void testItRepeats() {
     // run command scheduler twice to end wait command and start vibration command
     for (int i = 0; i < kRepetitions; i++) {

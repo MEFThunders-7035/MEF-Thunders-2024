@@ -32,6 +32,7 @@ public class VibrateControllerCommand extends SequentialCommandGroup {
             new InstantCommand(() -> controller.setRumble(RumbleType.kBothRumble, 0)),
             new WaitCommand(duration));
 
-    return new RepeatForCommand(toRepeatCommand, repetitions);
+    return new RepeatForCommand(toRepeatCommand, repetitions)
+        .finallyDo(() -> controller.setRumble(RumbleType.kBothRumble, 0));
   }
 }

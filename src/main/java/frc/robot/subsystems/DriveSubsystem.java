@@ -34,7 +34,7 @@ import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
 
-public class DriveSubsystem extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
 
@@ -153,6 +153,17 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
+  }
+
+  @Override
+  public void close() {
+    frontLeft.close();
+    frontRight.close();
+    rearLeft.close();
+    rearRight.close();
+
+    field.close();
+    publisher.close();
   }
 
   private void updatePoseWithVision() {
@@ -367,6 +378,15 @@ public class DriveSubsystem extends SubsystemBase {
     frontRight.setDesiredState(desiredStates[1]);
     rearLeft.setDesiredState(desiredStates[2]);
     rearRight.setDesiredState(desiredStates[3]);
+  }
+
+  public SwerveModuleState[] getModuleDesiredStates() {
+    return new SwerveModuleState[] {
+      frontLeft.getDesiredState(),
+      frontRight.getDesiredState(),
+      rearLeft.getDesiredState(),
+      rearRight.getDesiredState()
+    };
   }
 
   /** Resets the drive encoders to currently read a position of 0. */

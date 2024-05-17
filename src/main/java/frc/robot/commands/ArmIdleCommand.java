@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 public class ArmIdleCommand extends SequentialCommandGroup {
   public ArmIdleCommand(ArmSubsystem armSubsystem, DoubleSupplier axis) {
     super(armSubsystem.run(() -> toRun(armSubsystem, axis.getAsDouble())));
+    SmartDashboard.putNumber("Arm Pos", 0);
   }
 
   private static void toRun(ArmSubsystem armSubsystem, double axis) {

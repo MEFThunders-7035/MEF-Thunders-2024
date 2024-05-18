@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
@@ -166,6 +167,13 @@ public class RobotContainer {
 
     new JoystickButton(controller, Button.kRightBumper.value) // Reverse Shooter to intake
         .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
+
+    new JoystickButton(controller, Button.kLeftBumper.value)
+        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+
+    new Trigger(() -> controller.getPOV() == 0)
+        // Move arm to 0.5, and set it there until the button is released.
+        .whileTrue(armSubsystem.run(() -> armSubsystem.setArmToPosition(0.5)));
 
     configureMidiBindings();
   }

@@ -16,7 +16,7 @@ public class ShooterSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public void setShooterSpeed(double speed) {
-    shooterMotor.set(speed);
+    shooterMotor.setVoltage(speed * 12.0);
   }
 
   public void stopShooter() {

@@ -6,6 +6,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.SparkRelativeEncoder;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -13,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
+import frc.robot.commands.MoveArmToPositionCommand;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -88,6 +90,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public boolean isArmAtPosition(double position) {
+    position = MathUtil.clamp(position, 0, 0.5);
     return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
@@ -108,6 +111,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   public void setArmToPosition(double position) {
     // the hand is slightly down, which means the 0 value is
     // actually "kArmParallelDifference" down so we compensate for that in the calculation
+    position = MathUtil.clamp(position, 0, 0.5);
     var calculation =
         feedforward.calculate(
             (position - kArmParallelDifference) * Math.PI,
@@ -129,8 +133,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command setArmToPositionCommand(double position) {
-    return this.run(() -> this.setArmToPosition(position))
-        .until(() -> this.isArmAtPosition(position));
+    return new MoveArmToPositionCommand(this, position);
   }
 
   /**
@@ -140,7 +143,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
    * @return A command that will set the arm to the given position.
    */
   public Command setArmToPositionCommand(int positionDegrees) {
-    return this.setArmToPositionCommand(positionDegrees / 360.0);
+    return this.setArmToPositionCommand(positionDegrees / 180.0);
   }
 
   public void setArmToAprilTag() {

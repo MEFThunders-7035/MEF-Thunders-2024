@@ -19,6 +19,7 @@ public class PhotonSim {
   }
 
   public static void update(Pose2d robotPose) {
+    if (visionSim == null) return;
     visionSim.update(robotPose);
   }
 

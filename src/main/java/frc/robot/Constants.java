@@ -175,8 +175,7 @@ public final class Constants {
     public static final class PiCamera {
       public static final String cameraName = "piCamera";
       public static final double kCameraHeight = 0.225;
-      public static final double kCameraYDistanceMeters =
-          0.45; // ~45 cm away from the center of the robot forwards
+      public static final double kCameraYDistanceMeters = -0.15; // 15 cm back of the robot
       public static final double kCameraXDistanceMeters = 0.18; // ~18 cm away sideways
       public static final double kCameraPitchRadians = Math.toRadians(-30); // 30 degrees up
       public static final double kCameraYawRadians = Math.toRadians(180); // looking to the back
@@ -222,9 +221,10 @@ public final class Constants {
 
   public static final class MagicConstants {
     public static final class ArmQuadraticFunction {
-      public static final double kXSquared = -0.0290179;
-      public static final double kX = 0.184476;
-      public static final double kConstant = -0.0879749;
+      // Quadratic function constants of: ax^2 + bx + c
+      public static final double kXSquared = 0.0404292;
+      public static final double kX = -0.0407415;
+      public static final double kConstant = 0.089446;
     }
   }
 }

@@ -8,8 +8,9 @@ import frc.robot.subsystems.IntakeSubsystem;
 public class LoadToShooterCommand extends ParallelRaceGroup {
   public LoadToShooterCommand(IntakeSubsystem intakeSubsystem) {
     super(
-        intakeSubsystem.run(
-            () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true)),
+        intakeSubsystem.runEnd(
+            () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true),
+            intakeSubsystem::stopMotors),
         new WaitANDConditionCommand(0.5, () -> !intakeSubsystem.hasNote())
             .alongWith(new PrintCommand("Loading To Shooter"))
             .andThen(new PrintCommand("Loaded to Shooter!")));

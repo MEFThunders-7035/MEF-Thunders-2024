@@ -10,7 +10,9 @@ public class BasicIntakeCommand extends ParallelRaceGroup {
   public BasicIntakeCommand(IntakeSubsystem intakeSubsystem) {
     super(
         intakeSubsystem
-            .run(() -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed))
+            .runEnd(
+                () -> intakeSubsystem.setIntakeSpeed(IntakeConstants.kIntakeSpeed),
+                intakeSubsystem::stopMotors)
             .until(intakeSubsystem::hasNote),
         new LEDBlinkRedCommand(LEDSystem.getInstance()));
   }

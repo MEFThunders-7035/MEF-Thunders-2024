@@ -107,6 +107,11 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     setIntakeSpeed(speed, false);
   }
 
+  public void stopMotors() {
+    armIntake.stopMotor();
+    groundIntake.stopMotor();
+  }
+
   public void checkIfHasNote() {
     if (hasNote() && armIntake.get() > 0 && !isForced) {
       setIntakeSpeed(0);

@@ -12,7 +12,8 @@ public class MoveArmToPositionCommand extends ParallelRaceGroup {
   public MoveArmToPositionCommand(ArmSubsystem armSubsystem, DoubleSupplier position) {
     super(
         armSubsystem
-            .run(() -> armSubsystem.setArmToPosition(position.getAsDouble()))
+            .runEnd(
+                () -> armSubsystem.setArmToPosition(position.getAsDouble()), armSubsystem::stopArm)
             .until(() -> armSubsystem.isArmAtPosition(position.getAsDouble())));
   }
 }

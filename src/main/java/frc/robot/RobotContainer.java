@@ -31,13 +31,12 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LEDSystem;
-import frc.robot.subsystems.LogitechController;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
-  private final XboxController controller = new LogitechController(0);
+  private final XboxController controller = new XboxController(0);
 
   private final SendableChooser<Command> autoChooser;
 

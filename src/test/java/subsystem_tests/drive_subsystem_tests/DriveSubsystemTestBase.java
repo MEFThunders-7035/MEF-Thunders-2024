@@ -26,5 +26,9 @@ public class DriveSubsystemTestBase {
   @AfterEach
   public void tearDown() {
     driveSubsystem.close();
+    commandScheduler.cancelAll();
+    commandScheduler.unregisterAllSubsystems(); // ! breaks all test tests if not done
+    commandScheduler.close();
+    HAL.shutdown();
   }
 }

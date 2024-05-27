@@ -203,12 +203,12 @@ public class DriveSubsystem extends SubsystemBase {
 
     if (tag.isEmpty()) return new Rotation2d();
 
-    return Rotation2d.fromRadians(
-            -Math.atan2(
-                tag.get().getTranslation().getY() - getPose().getTranslation().getY(),
-                tag.get().getTranslation().getX() - getPose().getTranslation().getX()))
-        .rotateBy(Rotation2d.fromDegrees(180))
-        .rotateBy(swerveOdometry.getEstimatedPosition().getRotation());
+    return tag.get()
+        .getTranslation()
+        .toTranslation2d()
+        .minus(getPose().getTranslation())
+        .getAngle()
+        .minus(getRotation2d());
   }
 
   public Pose2d getPose() {

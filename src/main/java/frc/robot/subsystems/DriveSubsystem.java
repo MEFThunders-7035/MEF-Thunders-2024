@@ -38,7 +38,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
 
-  private Rotation2d fieldOrientationRotateBy = Rotation2d.fromDegrees(180);
+  private Rotation2d fieldOrientationRotateBy = new Rotation2d();
   private boolean forceRobotOriented = false;
 
   private final MAXSwerveModule frontLeft =
@@ -414,7 +414,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
    * @see {@link zeroHeading} for actually resetting the heading on the hardware level
    */
   public void zeroFieldOrientation() {
-    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(180));
+    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(0));
   }
 
   /**

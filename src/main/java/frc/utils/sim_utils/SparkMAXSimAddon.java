@@ -43,6 +43,9 @@ public class SparkMAXSimAddon {
   }
 
   public static void resetData() {
+    for (CANSparkMax sparkMAX : sparkMaxes.values()) {
+      sparkMAX.close();
+    }
     sparkMaxes.clear();
   }
 }

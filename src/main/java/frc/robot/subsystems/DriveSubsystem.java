@@ -208,7 +208,9 @@ public class DriveSubsystem extends SubsystemBase {
         .toTranslation2d()
         .minus(getPose().getTranslation())
         .getAngle()
-        .minus(getRotation2d());
+        .minus(getRotation2d())
+        .rotateBy(Rotation2d.fromDegrees(180))
+        .times(-1);
   }
 
   public Pose2d getPose() {

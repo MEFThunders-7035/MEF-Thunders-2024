@@ -19,10 +19,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants.DrivePIDController;
 import frc.robot.Constants.AutoConstants.RotationPIDController;
@@ -144,15 +143,26 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putData(field);
     SmartDashboard.putNumber("Rotation", getHeading());
     SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
-    publisher.set(
-        new SwerveModuleState[] {
-          frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
-        });
+    if (RobotBase.isReal()) {
+      publisher.set(
+          new SwerveModuleState[] {
+            frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
+          });
+    }
   }
 
   @Override
   public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
+    var states = getModuleDesiredStates();
+    publisher.set(states);
+    SmartDashboard.putNumber("Front Left Swerve Speed", states[0].speedMetersPerSecond);
+    SmartDashboard.putNumber("Front Left Swerve Rotation", states[0].angle.getDegrees());
+    SmartDashboard.putNumber("Front Right Swerve Speed", states[1].speedMetersPerSecond);
+    SmartDashboard.putNumber("Front Right Swerve Rotation", states[1].angle.getDegrees());
+    SmartDashboard.putNumber("Rear Left Swerve Speed", states[2].speedMetersPerSecond);
+    SmartDashboard.putNumber("Rear Left Swerve Rotation", states[2].angle.getDegrees());
+    SmartDashboard.putNumber("Rear Right Swerve Speed", states[3].speedMetersPerSecond);
+    SmartDashboard.putNumber("Rear Right Swerve Rotation", states[3].angle.getDegrees());
   }
 
   @Override

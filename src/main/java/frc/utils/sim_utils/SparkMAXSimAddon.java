@@ -42,6 +42,11 @@ public class SparkMAXSimAddon {
     return sparkMaxes.get(deviceID);
   }
 
+  public static boolean doesSparkMAXExist(int deviceID) {
+    return sparkMaxes.containsKey(deviceID);
+  }
+
+  /** Closes all SparkMAXes and clears the data. */
   public static void resetData() {
     for (CANSparkMax sparkMAX : sparkMaxes.values()) {
       sparkMAX.close();

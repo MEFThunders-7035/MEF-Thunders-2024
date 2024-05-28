@@ -163,7 +163,7 @@ public class BetterLED extends AddressableLED {
               Timer.delay(0.5);
             },
             blinkCount,
-            "blink " + blinkCount + " times"));
+            "blink %d times".formatted(blinkCount)));
   }
 
   public void blink(Color color, double delaySeconds) {
@@ -176,7 +176,7 @@ public class BetterLED extends AddressableLED {
               Timer.delay(delaySeconds);
             },
             true,
-            "blink infinitely"));
+            "blink %s infinitely".formatted(color.toString())));
   }
 
   public void blink(Color color) {
@@ -207,7 +207,7 @@ public class BetterLED extends AddressableLED {
               }
             },
             true,
-            "breath"));
+            "breath %s".formatted(color.toString())));
   }
 
   public void breathe(Color color, double delayTime) {
@@ -301,7 +301,7 @@ public class BetterLED extends AddressableLED {
           Timer.delay(0.1);
         },
         true,
-        "Left To Right");
+        "Left To Right %s".formatted(color.toString()));
   }
 
   private LEDCommand createRightToLeftAnimationLoop(Color color, int onLEDCount) {
@@ -320,12 +320,12 @@ public class BetterLED extends AddressableLED {
           Timer.delay(0.1);
         },
         true,
-        "Right to Left");
+        "Right to Left %s".formatted(color.toString()));
   }
 
   public String getCurrentCommandName() {
     if (commandList.isEmpty()) {
-      return "Stopped";
+      return "No Command Running";
     }
     return commandList.get(0).toString();
   }

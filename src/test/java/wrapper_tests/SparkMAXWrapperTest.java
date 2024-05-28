@@ -1,6 +1,7 @@
 package wrapper_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import edu.wpi.first.hal.HAL;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
@@ -32,17 +33,11 @@ class SparkMAXWrapperTest {
     assertEquals(true, sparkMAX.isThisClosed());
   }
 
+  @SuppressWarnings("resource")
   @Test
   void testSparkMAXClear() {
-    CANSparkMAXWrapped sparkMAX =
-        new CANSparkMAXWrapped(1, CANSparkMAXWrapped.MotorType.kBrushless);
-    SparkMAXSimAddon.resetData();
-    try {
-      SparkMAXSimAddon.getSparkMAX(1);
-      assert false; // should not reach here
-      sparkMAX.close(); // just so the linter doesn't complain
-    } catch (IllegalArgumentException e) {
-      assertEquals("SparkMAX with deviceID 1 does not exist", e.getMessage());
-    }
+    new CANSparkMAXWrapped(1, CANSparkMAXWrapped.MotorType.kBrushless);
+    SparkMAXSimAddon.resetData(); // reset data already closes the spark max
+    assertThrows(IllegalArgumentException.class, () -> SparkMAXSimAddon.getSparkMAX(1));
   }
 }

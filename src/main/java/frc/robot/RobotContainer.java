@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
+import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
@@ -113,7 +114,7 @@ public class RobotContainer {
   }
 
   private void setDefaultCommands() {
-    driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
+    driveSubsystem.setDefaultCommand(new DefaultDriveCommand(driveSubsystem, controller));
 
     // move arm with midi's potentiometer
     armSubsystem.setDefaultCommand(

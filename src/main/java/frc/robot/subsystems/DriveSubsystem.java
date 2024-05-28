@@ -439,25 +439,6 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     return navX.getRate();
   }
 
-  /**
-   * Drives the robot with the given Controller.
-   *
-   * <p>This is a convenience method for {@link #drive(double, double, double, double, double,
-   * boolean, boolean)}. It's made to handle the deadband and boost.
-   *
-   * @param controller The controller to drive with.
-   * @return The command to drive the robot.
-   */
-  public Command defaultDriveCommand(XboxController controller) {
-    return run(
-        () ->
-            driveWithExtras(
-                controller.getLeftY(),
-                controller.getLeftX(),
-                -controller.getRightX(),
-                controller.getRightTriggerAxis()));
-  }
-
   /** This will handle adding Deadband, and adding boost to the drive. */
   public void driveWithExtras(
       double xSpeed,

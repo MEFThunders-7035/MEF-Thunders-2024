@@ -125,6 +125,10 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
         this // Reference to this subsystem to set requirements
         );
     SmartDashboard.putNumber("Move By", 0);
+    if (RobotBase.isSimulation()) {
+      SmartDashboard.putNumber("X position", 0);
+      SmartDashboard.putNumber("Y position", 0);
+    }
   }
 
   @Override
@@ -163,6 +167,13 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     SmartDashboard.putNumber("Rear Left Swerve Rotation", states[2].angle.getDegrees());
     SmartDashboard.putNumber("Rear Right Swerve Speed", states[3].speedMetersPerSecond);
     SmartDashboard.putNumber("Rear Right Swerve Rotation", states[3].angle.getDegrees());
+
+    var xPos = SmartDashboard.getNumber("X position", 0);
+    var yPos = SmartDashboard.getNumber("Y position", 0);
+
+    if (xPos != 0 && yPos != 0) {
+      resetOdometry(new Pose2d(xPos, yPos, getRotation2d()));
+    }
   }
 
   @Override

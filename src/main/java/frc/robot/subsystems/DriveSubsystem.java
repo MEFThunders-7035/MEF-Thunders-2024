@@ -5,6 +5,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+import edu.wpi.first.hal.SimDevice;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -185,6 +186,20 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 
     field.close();
     publisher.close();
+
+    // closing navX with Reflection shenanigans
+    closeNavX();
+  }
+
+  private void closeNavX() {
+    try {
+      var sd = AHRS.class.getDeclaredField("m_simDevice");
+      sd.setAccessible(true);
+      var amazing = (SimDevice) sd.get(navX);
+      amazing.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } // .get can throw TOO MANY exceptions
   }
 
   private void updatePoseWithVision() {

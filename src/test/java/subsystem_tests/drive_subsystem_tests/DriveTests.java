@@ -2,11 +2,9 @@ package subsystem_tests.drive_subsystem_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Constants.DriveConstants;
-import frc.utils.sim_utils.SparkMAXSimAddon;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,12 +13,6 @@ import subsystem_tests.drive_subsystem_tests.utils.DriveTestUtils;
 class DriveTests extends DriveSubsystemTestBase {
   @BeforeEach
   public void setUp() {
-    // temporary fix for tests
-    for (int i = 1; i <= 8; i++) {
-      if (SparkMAXSimAddon.doesSparkMAXExist(i)) {
-        SparkMAXSimAddon.getSparkMAX(i).close();
-      }
-    }
     super.setUp();
   }
 
@@ -106,14 +98,6 @@ class DriveTests extends DriveSubsystemTestBase {
     for (var state : driveSubsystem.getModuleDesiredStates()) {
       assertEquals(DriveConstants.kMaxSpeedMetersPerSecond, state.speedMetersPerSecond, 0.01);
       assertEquals(Rotation2d.fromDegrees(225), state.angle);
-    }
-  }
-
-  @Test
-  void printAllSimNames() {
-    for (int i = 1; i <= 16; i++) {
-      var deviceName = SimDeviceDataJNI.getSimDeviceName(i);
-      System.out.println(deviceName);
     }
   }
 }

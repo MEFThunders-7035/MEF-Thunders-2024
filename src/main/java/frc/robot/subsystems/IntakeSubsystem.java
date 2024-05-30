@@ -6,12 +6,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
-import frc.robot.commands.LoadToShooterCommand;
 import frc.robot.commands.VibrateControllerCommand;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;
@@ -113,16 +111,6 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     }
   }
 
-  public Command loadToShooterCommand() {
-    return new LoadToShooterCommand(this);
-  }
-
-  public Command vibrateControllerOnNoteCommand(XboxController controller) {
-    return new VibrateControllerCommand(controller, 2, 1, 0.2)
-        .alongWith(new PrintCommand("Note!"))
-        .beforeStarting(new WaitUntilCommand(this::hasNote));
-  }
-
   @Override
   public void periodic() {
     SmartDashboard.putNumber("ColorSensor - Distance", colorSensor.getProximity());
@@ -137,5 +125,19 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   private void fastPeriodic() {
     checkIfHasNote();
     Timer.delay(0.005);
+  }
+
+  public Command intake() {
+    return run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed)).until(this::hasNote);
+  }
+
+  public Command intakeThenVibrate(XboxController controller) {
+    Command vibrate = new VibrateControllerCommand(controller, 2, 1, 0.2);
+
+    return intake().andThen(vibrate.alongWith(Commands.print("NOTE!")));
+  }
+
+  public Command loadShooter() {
+    return Commands.parallel(Commands.waitSeconds(0.5), run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true)).until(() -> !hasNote()));
   }
 }

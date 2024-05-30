@@ -29,7 +29,6 @@ import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.utils.ExtraFunctions;
-
 import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
@@ -51,9 +50,7 @@ public class RobotContainer {
     configureJoystickBindings();
     setDefaultCommands();
     autoChooser = AutoBuilder.buildAutoChooser();
-    autoChooser.addOption(
-        "Shoot To Shooter",
-        smartShootWithArm());
+    autoChooser.addOption("Shoot To Shooter", smartShootWithArm());
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
     SmartDashboard.putData("Auto Chooser", autoChooser);
     if (RobotBase.isSimulation()) {
@@ -107,32 +104,26 @@ public class RobotContainer {
     return Commands.race(
             armSubsystem.moveToAmp(),
             shooterSubsystem.shoot(),
-            ledSubsystem.blinkColor(ExtraFunctions.getAllianceColor())).andThen(
-        Commands.race(intakeSubsystem.loadShooter(), shooterSubsystem.shoot())).andThen(
-        ledSubsystem.blinkColor(Color.kGreen));
-
+            ledSubsystem.blinkColor(ExtraFunctions.getAllianceColor()))
+        .andThen(Commands.race(intakeSubsystem.loadShooter(), shooterSubsystem.shoot()))
+        .andThen(ledSubsystem.blinkColor(Color.kGreen));
   }
 
   private Command smartShoot() {
-        return Commands.sequence(
-            Commands.deadline(ledSubsystem.loadingAnimation(2.5), shooterSubsystem.shoot()).andThen(shooterSubsystem.stop()),
-            Commands.race(intakeSubsystem.loadShooter(), shooterSubsystem.shoot()));
+    return Commands.sequence(
+        Commands.deadline(ledSubsystem.loadingAnimation(2.5), shooterSubsystem.shoot())
+            .andThen(shooterSubsystem.stop()),
+        Commands.race(intakeSubsystem.loadShooter(), shooterSubsystem.shoot()));
   }
 
   private Command smartShootWithArm() {
-    return Commands.race(
-        armSubsystem.moveTo(driveSubsystem::getDistanceToShooter),
-        smartShoot()
-    );
+    return Commands.race(armSubsystem.moveTo(driveSubsystem::getDistanceToShooter), smartShoot());
   }
 
   private void setupNamedCommands() {
     NamedCommands.registerCommand("Intake", intakeAndBlink());
-    NamedCommands.registerCommand(
-        "Shoot To Speaker",
-        smartShootWithArm());
-    NamedCommands.registerCommand(
-        "Shoot To Amp", shootToAmp());
+    NamedCommands.registerCommand("Shoot To Speaker", smartShootWithArm());
+    NamedCommands.registerCommand("Shoot To Amp", shootToAmp());
   }
 
   private void setDefaultCommands() {
@@ -160,10 +151,11 @@ public class RobotContainer {
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(
-          Commands.parallel(driveSubsystem.driveFacingShooter(controller::getLeftY, controller::getLeftX), smartShootWithArm()));
+            Commands.parallel(
+                driveSubsystem.driveFacingShooter(controller::getLeftY, controller::getLeftX),
+                smartShootWithArm()));
 
-    new JoystickButton(controller, Button.kX.value)
-        .whileTrue(shootToAmp());
+    new JoystickButton(controller, Button.kX.value).whileTrue(shootToAmp());
 
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
@@ -182,8 +174,7 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kRightBumper.value) // Reverse Shooter to intake
         .whileTrue(shooterSubsystem.shoot(() -> -1));
 
-    new JoystickButton(controller, Button.kLeftBumper.value)
-        .whileTrue(smartShoot());
+    new JoystickButton(controller, Button.kLeftBumper.value).whileTrue(smartShoot());
 
     new Trigger(() -> controller.getPOV() == 0)
         // Move arm to 0.5, and set it there until the button is released.
@@ -200,11 +191,9 @@ public class RobotContainer {
     new JoystickButton(midiController, 2)
         .onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder).ignoringDisable(true));
 
-    new JoystickButton(midiController, 3)
-        .whileTrue(smartShoot());
+    new JoystickButton(midiController, 3).whileTrue(smartShoot());
 
-    new JoystickButton(midiController, 4)
-        .whileTrue(smartShoot());
+    new JoystickButton(midiController, 4).whileTrue(smartShoot());
 
     new JoystickButton(midiController, 16)
         .onTrue(

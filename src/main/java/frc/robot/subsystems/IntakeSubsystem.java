@@ -138,6 +138,8 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command loadShooter() {
-    return Commands.parallel(Commands.waitSeconds(0.5), run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true)).until(() -> !hasNote()));
+    return Commands.parallel(
+        Commands.waitSeconds(0.5),
+        run(() -> setIntakeSpeed(IntakeConstants.kIntakeSpeed, 0, true)).until(() -> !hasNote()));
   }
 }

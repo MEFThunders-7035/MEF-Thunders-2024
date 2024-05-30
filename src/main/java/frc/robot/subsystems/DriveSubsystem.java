@@ -473,7 +473,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   public Command driveFacingShooter(DoubleSupplier xSpeed, DoubleSupplier ySpeed) {
     // TODO Resource leak... we ball
-    PIDController rotController = new PIDController(
+    PIDController rotController =
+        new PIDController(
             RotationPIDController.kP, RotationPIDController.kI, RotationPIDController.kD);
     rotController.enableContinuousInput(-Math.PI, Math.PI);
     rotController.setSetpoint(0);
@@ -483,13 +484,11 @@ public class DriveSubsystem extends SubsystemBase {
             driveWithExtras(
                 xSpeed.getAsDouble(),
                 ySpeed.getAsDouble(),
-                rotController.calculate(
-                    getRotationDifferenceToShooter().getRadians()),
+                rotController.calculate(getRotationDifferenceToShooter().getRadians()),
                 0));
   }
 
   private Rotation2d getFieldOrientedRotation2d() {
     return getRotation2d().rotateBy(fieldOrientationRotateBy);
   }
-
 }

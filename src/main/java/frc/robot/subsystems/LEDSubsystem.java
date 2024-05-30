@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import java.util.function.BooleanSupplier;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -11,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants;
 import frc.utils.BetterLED;
+import java.util.function.BooleanSupplier;
 
 public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
   BetterLED strip;
@@ -104,13 +103,14 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Command idle(BooleanSupplier status) {
-    return run(() -> {
-      if (DriverStation.isEnabled()) {
-        setStatusColor(status.getAsBoolean());
-      } else {
-        fill(Color.kOrangeRed);
-      }
-    });
+    return run(
+        () -> {
+          if (DriverStation.isEnabled()) {
+            setStatusColor(status.getAsBoolean());
+          } else {
+            fill(Color.kOrangeRed);
+          }
+        });
   }
 
   public Command blinkColor(Color color) {
@@ -135,7 +135,7 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     Color loadingColor = new Color(0, 200, 255);
 
     return run(() -> fillPercentageWithColor(loadingTimer.get() / seconds, loadingColor))
-      .until(() -> loadingTimer.get() > seconds)
-      .beforeStarting(() -> loadingTimer.reset());
+        .until(() -> loadingTimer.get() > seconds)
+        .beforeStarting(() -> loadingTimer.reset());
   }
 }

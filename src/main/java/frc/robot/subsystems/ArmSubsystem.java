@@ -2,9 +2,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-
-import java.util.function.DoubleSupplier;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
@@ -20,6 +17,7 @@ import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.robot.Constants.MagicConstants.ArmQuadraticFunction;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
+import java.util.function.DoubleSupplier;
 
 public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   // We only have RelativeEncoder for now. Its better than nothing.
@@ -140,13 +138,14 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   public Command moveToShooter(DoubleSupplier distanceToShooter) {
     // TODO Comment in original command said that it should never end...
     // TODO Put a pin in this...
-    // return moveTo(ExtraFunctions.getAngleFromDistance(distanceToShooter.getAsDouble())).repeatedly();
+    // return
+    // moveTo(ExtraFunctions.getAngleFromDistance(distanceToShooter.getAsDouble())).repeatedly();
     return pushSetpoint(() -> getAngleFromDistance(distanceToShooter.getAsDouble()));
   }
 
   private double getAngleFromDistance(double distanceToShooter) {
     return ArmQuadraticFunction.kXSquared * (Math.pow(distanceToShooter, 2))
-        + ArmQuadraticFunction.kX * distanceToShooter 
+        + ArmQuadraticFunction.kX * distanceToShooter
         + ArmQuadraticFunction.kConstant;
   }
 

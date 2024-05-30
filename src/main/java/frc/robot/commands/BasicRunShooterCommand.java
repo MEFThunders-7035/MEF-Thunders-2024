@@ -17,7 +17,7 @@ public class BasicRunShooterCommand extends SequentialCommandGroup {
     super(
         new ParallelRaceGroup(
             new BasicRunShooterCommand(shooterSubsystem), // Run the shooter
-            new LEDLoadingWaitCommand(ledSubsystem, untilTimeSeconds)),
+            ledSubsystem.loadingAnimation(untilTimeSeconds)),
         shooterSubsystem.runOnce(
             () -> shooterSubsystem.setShooterSpeed(0) // Stop the shooter after the wait
             ));

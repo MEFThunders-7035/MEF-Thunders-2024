@@ -1,6 +1,10 @@
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -12,10 +16,11 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
   BetterLED strip;
   Color lastSetColor = new Color();
   Color lastSetBlinkingColor = new Color();
-  boolean isBlinkingRed = false;
+  Timer loadingTimer;
 
   public LEDSubsystem() {
     strip = new BetterLED(LEDConstants.kLedPin, LEDConstants.kLedCount);
+    loadingTimer = new Timer();
   }
 
   @Override
@@ -39,7 +44,6 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     strip.fillColor(color);
     lastSetColor = color;
     lastSetBlinkingColor = Color.kBlack;
-    isBlinkingRed = false;
   }
 
   public void fill(Color color, int count) {
@@ -53,24 +57,6 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     strip.fillColor(color, count);
     lastSetColor = color;
     lastSetBlinkingColor = Color.kBlack;
-  }
-
-  public Command blinkRedCommand() {
-    return this.run(this::blinkRed)
-        .finallyDo(
-            () -> {
-              strip.removeFromLoop();
-              lastSetBlinkingColor = new Color();
-            });
-  }
-
-  public Command getBlinkColorCommand(Color color) {
-    return this.run(() -> blink(color))
-        .finallyDo(
-            () -> {
-              strip.removeFromLoop();
-              lastSetBlinkingColor = new Color();
-            });
   }
 
   public void setRed() {
@@ -89,7 +75,7 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     }
   }
 
-  public void blink(Color color, double delaySeconds) {
+  private void blink(Color color, double delaySeconds) {
     if (lastSetBlinkingColor.equals(color)) {
       return;
     }
@@ -98,15 +84,8 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     strip.blink(color, delaySeconds);
   }
 
-  public void blink(Color color) {
+  private void setBlinkColor(Color color) {
     blink(color, 0.2);
-  }
-
-  public void blinkRed() {
-    if (isBlinkingRed) {
-      return;
-    }
-    blink(new Color(255, 0, 0));
   }
 
   /**
@@ -122,5 +101,41 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
 
   public BetterLED getStrip() {
     return strip;
+  }
+
+  public Command idle(BooleanSupplier status) {
+    return run(() -> {
+      if (DriverStation.isEnabled()) {
+        setStatusColor(status.getAsBoolean());
+      } else {
+        fill(Color.kOrangeRed);
+      }
+    });
+  }
+
+  public Command blinkColor(Color color) {
+    return run(() -> setBlinkColor(color))
+        .finallyDo(
+            () -> {
+              strip.removeFromLoop();
+              lastSetBlinkingColor = new Color();
+            });
+  }
+
+  public Command blinkRed() {
+    return blinkColor(new Color(255, 0, 0))
+        .finallyDo(
+            () -> {
+              strip.removeFromLoop();
+              lastSetBlinkingColor = new Color();
+            });
+  }
+
+  public Command loadingAnimation(double seconds) {
+    Color loadingColor = new Color(0, 200, 255);
+
+    return run(() -> fillPercentageWithColor(loadingTimer.get() / seconds, loadingColor))
+      .until(() -> loadingTimer.get() > seconds)
+      .beforeStarting(() -> loadingTimer.reset());
   }
 }

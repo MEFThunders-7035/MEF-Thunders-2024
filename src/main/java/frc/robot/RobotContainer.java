@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.commands.LEDIdleCommand;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.simulationSystems.PhotonSim;
@@ -99,7 +98,7 @@ public class RobotContainer {
   }
 
   private Command intakeAndBlink() {
-    return intakeSubsystem.intake().raceWith(ledSubsystem.blinkRedCommand());
+    return intakeSubsystem.intake().raceWith(ledSubsystem.blinkRed());
   }
 
   private void setupNamedCommands() {
@@ -127,7 +126,7 @@ public class RobotContainer {
             shooterSubsystem));
 
     ledSubsystem.setDefaultCommand(
-        new LEDIdleCommand(ledSubsystem, intakeSubsystem).ignoringDisable(true));
+        ledSubsystem.idle(intakeSubsystem::hasNote).ignoringDisable(true));
   }
 
   private void configureJoystickBindings() {

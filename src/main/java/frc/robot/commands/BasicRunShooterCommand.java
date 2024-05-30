@@ -3,7 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.commands.led_commands.LEDLoadingWaitCommand;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class BasicRunShooterCommand extends SequentialCommandGroup {
@@ -13,11 +13,11 @@ public class BasicRunShooterCommand extends SequentialCommandGroup {
             () -> shooterSubsystem.setShooterSpeed(ShooterConstants.kShooterSpeed)));
   }
 
-  public BasicRunShooterCommand(ShooterSubsystem shooterSubsystem, double untilTimeSeconds) {
+  public BasicRunShooterCommand(ShooterSubsystem shooterSubsystem, LEDSubsystem ledSubsystem, double untilTimeSeconds) {
     super(
         new ParallelRaceGroup(
             new BasicRunShooterCommand(shooterSubsystem), // Run the shooter
-            new LEDLoadingWaitCommand(untilTimeSeconds)),
+            new LEDLoadingWaitCommand(ledSubsystem, untilTimeSeconds)),
         shooterSubsystem.runOnce(
             () -> shooterSubsystem.setShooterSpeed(0) // Stop the shooter after the wait
             ));

@@ -5,16 +5,17 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import java.util.function.DoubleSupplier;
 
 public class SmartShootCommand extends ParallelRaceGroup {
   private static final double waitTime = 2.5;
 
-  public SmartShootCommand(ShooterSubsystem shooterSubsystem, IntakeSubsystem intakeSubsystem) {
+  public SmartShootCommand(ShooterSubsystem shooterSubsystem, LEDSubsystem ledSubsystem, IntakeSubsystem intakeSubsystem) {
     super(
         new SequentialCommandGroup(
-            new BasicRunShooterCommand(shooterSubsystem, waitTime),
+            new BasicRunShooterCommand(shooterSubsystem, ledSubsystem, waitTime),
             new ParallelRaceGroup(
                 new BasicRunShooterCommand(shooterSubsystem),
                 new LoadToShooterCommand(intakeSubsystem))));
@@ -23,18 +24,20 @@ public class SmartShootCommand extends ParallelRaceGroup {
   public SmartShootCommand(
       ShooterSubsystem shooterSubsystem,
       IntakeSubsystem intakeSubsystem,
+      LEDSubsystem ledSubsystem,
       ArmSubsystem armSubsystem,
       DriveSubsystem driveSubsystem) {
     super(
         // Constantly move the arm until all the other commands finish.
         new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
   }
 
   public SmartShootCommand(
       ShooterSubsystem shooterSubsystem,
       IntakeSubsystem intakeSubsystem,
       ArmSubsystem armSubsystem,
+      LEDSubsystem ledSubsystem,
       DriveSubsystem driveSubsystem,
       DoubleSupplier xSpeed,
       DoubleSupplier ySpeed) {
@@ -43,6 +46,6 @@ public class SmartShootCommand extends ParallelRaceGroup {
         new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
         new DriveFacingShooter(driveSubsystem, xSpeed, ySpeed),
         // The finishing command will be this one:
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
   }
 }

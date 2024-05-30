@@ -21,16 +21,15 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
+import frc.robot.commands.LEDIdleCommand;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
-import frc.robot.commands.led_commands.LEDIdleCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
-import frc.robot.subsystems.LEDSystem;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import org.littletonrobotics.urcl.URCL;
@@ -46,7 +45,7 @@ public class RobotContainer {
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ArmSubsystem armSubsystem = new ArmSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  private final LEDSubsystem ledSubsystem = LEDSystem.getInstance();
+  private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
   public RobotContainer() {
     setupNamedCommands();
@@ -56,7 +55,7 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser();
     autoChooser.addOption(
         "Shoot To Shooter",
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
+        new SmartShootCommand(shooterSubsystem, intakeSubsystem, ledSubsystem, armSubsystem, driveSubsystem));
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
     SmartDashboard.putData("Auto Chooser", autoChooser);
     if (RobotBase.isSimulation()) {
@@ -103,12 +102,12 @@ public class RobotContainer {
   }
 
   private void setupNamedCommands() {
-    NamedCommands.registerCommand("Intake", new BasicIntakeCommand(intakeSubsystem));
+    NamedCommands.registerCommand("Intake", new BasicIntakeCommand(intakeSubsystem, ledSubsystem));
     NamedCommands.registerCommand(
         "Shoot To Speaker",
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
+        new SmartShootCommand(shooterSubsystem, intakeSubsystem, ledSubsystem, armSubsystem, driveSubsystem));
     NamedCommands.registerCommand(
-        "Shoot To Amp", new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
+        "Shoot To Amp", new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, ledSubsystem, armSubsystem));
   }
 
   private void setDefaultCommands() {
@@ -136,7 +135,7 @@ public class RobotContainer {
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
     new JoystickButton(controller, Button.kB.value) // Intake
-        .whileTrue(new SmartIntakeCommand(intakeSubsystem, controller));
+        .whileTrue(new SmartIntakeCommand(intakeSubsystem, ledSubsystem, controller));
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(
@@ -144,12 +143,13 @@ public class RobotContainer {
                 shooterSubsystem,
                 intakeSubsystem,
                 armSubsystem,
+                ledSubsystem,
                 driveSubsystem,
                 controller::getLeftY,
                 controller::getLeftX));
 
     new JoystickButton(controller, Button.kX.value)
-        .whileTrue(new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
+        .whileTrue(new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, ledSubsystem, armSubsystem));
 
     new JoystickButton(controller, Button.kStart.value) // Reset Heading
         .onTrue(
@@ -169,7 +169,7 @@ public class RobotContainer {
         .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
 
     new JoystickButton(controller, Button.kLeftBumper.value)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
 
     new Trigger(() -> controller.getPOV() == 0)
         // Move arm to 0.5, and set it there until the button is released.
@@ -187,10 +187,10 @@ public class RobotContainer {
         .onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder).ignoringDisable(true));
 
     new JoystickButton(midiController, 3)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
 
     new JoystickButton(midiController, 4)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
 
     new JoystickButton(midiController, 16)
         .onTrue(

@@ -44,7 +44,7 @@ public class SmartShootCommand extends ParallelRaceGroup {
     super(
         // Constantly move the arm until all the other commands finish.
         armSubsystem.moveTo(driveSubsystem::getDistanceToShooter),
-        new DriveFacingShooter(driveSubsystem, xSpeed, ySpeed),
+        driveSubsystem.driveFacingShooter(xSpeed, ySpeed),
         // The finishing command will be this one:
         new SmartShootCommand(shooterSubsystem, ledSubsystem, intakeSubsystem));
   }

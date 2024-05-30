@@ -6,6 +6,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -33,6 +34,7 @@ import frc.robot.Constants.OIConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 
 public class DriveSubsystem extends SubsystemBase {
   private final AHRS navX = new AHRS();
@@ -198,7 +200,7 @@ public class DriveSubsystem extends SubsystemBase {
         + SmartDashboard.getNumber("Move By", 0);
   }
 
-  public Rotation2d getRotationDifferenceToShooter() {
+  private Rotation2d getRotationDifferenceToShooter() {
     var tag = getTagPose(ExtraFunctions.getShooterAprilTagID());
 
     if (tag.isEmpty()) return new Rotation2d();
@@ -467,6 +469,23 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
     driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
+  }
+
+  public Command driveFacingShooter(DoubleSupplier xSpeed, DoubleSupplier ySpeed) {
+    // TODO Resource leak... we ball
+    PIDController rotController = new PIDController(
+            RotationPIDController.kP, RotationPIDController.kI, RotationPIDController.kD);
+    rotController.enableContinuousInput(-Math.PI, Math.PI);
+    rotController.setSetpoint(0);
+
+    return run(
+        () ->
+            driveWithExtras(
+                xSpeed.getAsDouble(),
+                ySpeed.getAsDouble(),
+                rotController.calculate(
+                    getRotationDifferenceToShooter().getRadians()),
+                0));
   }
 
   private Rotation2d getFieldOrientedRotation2d() {

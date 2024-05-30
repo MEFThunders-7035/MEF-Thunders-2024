@@ -21,10 +21,6 @@ jobs:
         java-version: 17
         architecture: x64
 
-    # Declares the repository safe and not under dubious ownership.
-    - name: Add repository to git safe directories
-      run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
     # Runs a single command using the runners shell
     - name: Compile and run tests on robot code
       run: ./gradlew build

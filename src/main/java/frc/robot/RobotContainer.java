@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.commands.LEDIdleCommand;
 import frc.robot.commands.ShootToAmpCommand;
@@ -114,8 +113,7 @@ public class RobotContainer {
     driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
 
     // move arm with midi's potentiometer
-    armSubsystem.setDefaultCommand(
-        new ArmIdleCommand(armSubsystem, () -> midiController.getRawAxis(0)));
+    armSubsystem.setDefaultCommand((armSubsystem.moveTo(() -> midiController.getRawAxis(0))));
 
     intakeSubsystem.setDefaultCommand(
         new RunCommand(
@@ -173,7 +171,7 @@ public class RobotContainer {
 
     new Trigger(() -> controller.getPOV() == 0)
         // Move arm to 0.5, and set it there until the button is released.
-        .whileTrue(armSubsystem.run(() -> armSubsystem.setArmToPosition(0.5)));
+        .whileTrue(armSubsystem.moveToAmp());
 
     configureMidiBindings();
   }

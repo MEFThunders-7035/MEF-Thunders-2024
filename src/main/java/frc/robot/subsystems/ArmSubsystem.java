@@ -2,6 +2,9 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
@@ -14,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
-import frc.robot.commands.MoveArmToPositionCommand;
+import frc.robot.Constants.MagicConstants.ArmQuadraticFunction;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -89,7 +92,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     arm.set(0);
   }
 
-  public boolean isArmAtPosition(double position) {
+  private boolean atPosition(double position) {
     position = MathUtil.clamp(position, 0, 0.5);
     return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
@@ -105,45 +108,50 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   /**
    * Sets the arm to a given position.
    *
-   * @param position The rotation the arm should be at. (from 0 to 1)
-   * @see #setArmToPosition(int)
+   * @param setpoint The rotation the arm should be at. (from 0 to 1)
+   * @see #pushSetpointDegrees(int)
    */
-  public void setArmToPosition(double position) {
+  private void pushSetpoint(double setpoint) {
     // the hand is slightly down, which means the 0 value is
     // actually "kArmParallelDifference" down so we compensate for that in the calculation
-    position = MathUtil.clamp(position, 0, 0.5);
+    setpoint = MathUtil.clamp(setpoint, 0, 0.5);
     var calculation =
         feedforward.calculate(
-            (position - kArmParallelDifference) * Math.PI,
-            Math.abs(encoder.getPosition() - position));
+            (setpoint - kArmParallelDifference) * Math.PI,
+            Math.abs(encoder.getPosition() - setpoint));
     SmartDashboard.putNumber("FeedForward Calculation", calculation);
-    SmartDashboard.putNumber("Setpoint", position);
+    SmartDashboard.putNumber("Setpoint", setpoint);
     pidController.setReference(
-        position, ControlType.kPosition, 0, calculation, ArbFFUnits.kVoltage);
+        setpoint, ControlType.kPosition, 0, calculation, ArbFFUnits.kVoltage);
   }
 
-  /**
-   * Sets the arm to a given position.
-   *
-   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
-   * @see #setArmToPosition(double)
-   */
-  public void setArmToPosition(int positionDegrees) {
-    setArmToPosition(positionDegrees / 360.0);
+  private Command pushSetpoint(DoubleSupplier setpoint) {
+    return run(() -> pushSetpoint(setpoint.getAsDouble()));
   }
 
-  public Command setArmToPositionCommand(double position) {
-    return new MoveArmToPositionCommand(this, position);
+  public Command moveTo(DoubleSupplier position) {
+    return pushSetpoint(position).until(() -> atPosition(position.getAsDouble()));
   }
 
-  /**
-   * Sets the arm to a given position.
-   *
-   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
-   * @return A command that will set the arm to the given position.
-   */
-  public Command setArmToPositionCommand(int positionDegrees) {
-    return this.setArmToPositionCommand(positionDegrees / 180.0);
+  private Command moveTo(double setpoint) {
+    return moveTo(() -> setpoint);
+  }
+
+  public Command moveToShooter(DoubleSupplier distanceToShooter) {
+    // TODO Comment in original command said that it should never end...
+    // TODO Put a pin in this...
+    // return moveTo(ExtraFunctions.getAngleFromDistance(distanceToShooter.getAsDouble())).repeatedly();
+    return pushSetpoint(() -> getAngleFromDistance(distanceToShooter.getAsDouble()));
+  }
+
+  private double getAngleFromDistance(double distanceToShooter) {
+    return ArmQuadraticFunction.kXSquared * (Math.pow(distanceToShooter, 2))
+        + ArmQuadraticFunction.kX * distanceToShooter 
+        + ArmQuadraticFunction.kConstant;
+  }
+
+  public Command moveToAmp() {
+    return moveTo(0.5);
   }
 
   public void setArmToAprilTag() {
@@ -161,7 +169,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
 
     double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.2, 0.05); // between 10 and 20 deg
 
-    setArmToPosition(armAngle);
+    pushSetpoint(armAngle);
   }
 
   @Override

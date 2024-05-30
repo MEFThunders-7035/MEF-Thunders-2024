@@ -17,7 +17,7 @@ public class ShootToAmpCommand extends SequentialCommandGroup {
       ArmSubsystem armSubsystem) {
     super(
         new ParallelRaceGroup(
-            new MoveArmToAmp(armSubsystem),
+            armSubsystem.moveToAmp(),
             new BasicRunShooterCommand(shooterSubsystem),
             ledSubsystem.getBlinkColorCommand(ExtraFunctions.getAllianceColor())),
         new ParallelRaceGroup(

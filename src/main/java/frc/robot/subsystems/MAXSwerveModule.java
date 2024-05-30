@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.ModuleConstants;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
-public class MAXSwerveModule {
+public class MAXSwerveModule implements AutoCloseable {
   private final CANSparkMAXWrapped m_drivingSparkMax;
   private final CANSparkMAXWrapped m_turningSparkMax;
 
@@ -106,6 +106,12 @@ public class MAXSwerveModule {
     m_drivingEncoder.setPosition(0);
   }
 
+  @Override
+  public void close() {
+    m_drivingSparkMax.close();
+    m_turningSparkMax.close();
+  }
+
   /**
    * Returns the current state of the module.
    *
@@ -156,6 +162,10 @@ public class MAXSwerveModule {
         optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
 
     m_desiredState = desiredState;
+  }
+
+  public SwerveModuleState getDesiredState() {
+    return m_desiredState;
   }
 
   /** Zeroes all the SwerveModule encoders. */

@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
+import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
@@ -31,12 +32,13 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LEDSystem;
+import frc.robot.subsystems.LogitechController;
 import frc.robot.subsystems.PhotonCameraSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
-  private final XboxController controller = new XboxController(0);
+  private final XboxController controller = new LogitechController(0);
 
   private final SendableChooser<Command> autoChooser;
 
@@ -112,7 +114,7 @@ public class RobotContainer {
   }
 
   private void setDefaultCommands() {
-    driveSubsystem.setDefaultCommand(driveSubsystem.defaultDriveCommand(controller));
+    driveSubsystem.setDefaultCommand(new DefaultDriveCommand(driveSubsystem, controller));
 
     // move arm with midi's potentiometer
     armSubsystem.setDefaultCommand(

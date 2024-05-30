@@ -19,10 +19,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants.DrivePIDController;
 import frc.robot.Constants.AutoConstants.RotationPIDController;
@@ -34,11 +33,11 @@ import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
 
-public class DriveSubsystem extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private final AHRS navX = new AHRS();
   private Field2d field = new Field2d();
 
-  private Rotation2d fieldOrientationRotateBy = Rotation2d.fromDegrees(180);
+  private Rotation2d fieldOrientationRotateBy = new Rotation2d();
   private boolean forceRobotOriented = false;
 
   private final MAXSwerveModule frontLeft =
@@ -126,6 +125,10 @@ public class DriveSubsystem extends SubsystemBase {
         this // Reference to this subsystem to set requirements
         );
     SmartDashboard.putNumber("Move By", 0);
+    if (RobotBase.isSimulation()) {
+      SmartDashboard.putNumber("X position", 0);
+      SmartDashboard.putNumber("Y position", 0);
+    }
   }
 
   @Override
@@ -144,15 +147,44 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putData(field);
     SmartDashboard.putNumber("Rotation", getHeading());
     SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
-    publisher.set(
-        new SwerveModuleState[] {
-          frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
-        });
+    if (RobotBase.isReal()) {
+      publisher.set(
+          new SwerveModuleState[] {
+            frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
+          });
+    }
   }
 
   @Override
   public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
+    var states = getModuleDesiredStates();
+    publisher.set(states);
+    SmartDashboard.putNumber("Front Left Swerve Speed", states[0].speedMetersPerSecond);
+    SmartDashboard.putNumber("Front Left Swerve Rotation", states[0].angle.getDegrees());
+    SmartDashboard.putNumber("Front Right Swerve Speed", states[1].speedMetersPerSecond);
+    SmartDashboard.putNumber("Front Right Swerve Rotation", states[1].angle.getDegrees());
+    SmartDashboard.putNumber("Rear Left Swerve Speed", states[2].speedMetersPerSecond);
+    SmartDashboard.putNumber("Rear Left Swerve Rotation", states[2].angle.getDegrees());
+    SmartDashboard.putNumber("Rear Right Swerve Speed", states[3].speedMetersPerSecond);
+    SmartDashboard.putNumber("Rear Right Swerve Rotation", states[3].angle.getDegrees());
+
+    var xPos = SmartDashboard.getNumber("X position", 0);
+    var yPos = SmartDashboard.getNumber("Y position", 0);
+
+    if (xPos != 0 && yPos != 0) {
+      resetOdometry(new Pose2d(xPos, yPos, getRotation2d()));
+    }
+  }
+
+  @Override
+  public void close() {
+    frontLeft.close();
+    frontRight.close();
+    rearLeft.close();
+    rearRight.close();
+
+    field.close();
+    publisher.close();
   }
 
   private void updatePoseWithVision() {
@@ -371,6 +403,15 @@ public class DriveSubsystem extends SubsystemBase {
     rearRight.setDesiredState(desiredStates[3]);
   }
 
+  public SwerveModuleState[] getModuleDesiredStates() {
+    return new SwerveModuleState[] {
+      frontLeft.getDesiredState(),
+      frontRight.getDesiredState(),
+      rearLeft.getDesiredState(),
+      rearRight.getDesiredState()
+    };
+  }
+
   /** Resets the drive encoders to currently read a position of 0. */
   public void resetEncoders() {
     frontLeft.resetEncoders();
@@ -396,7 +437,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @see {@link zeroHeading} for actually resetting the heading on the hardware level
    */
   public void zeroFieldOrientation() {
-    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(180));
+    fieldOrientationRotateBy = getRotation2d().unaryMinus().rotateBy(Rotation2d.fromDegrees(0));
   }
 
   /**
@@ -419,25 +460,6 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public double getTurnRate() {
     return navX.getRate();
-  }
-
-  /**
-   * Drives the robot with the given Controller.
-   *
-   * <p>This is a convenience method for {@link #drive(double, double, double, double, double,
-   * boolean, boolean)}. It's made to handle the deadband and boost.
-   *
-   * @param controller The controller to drive with.
-   * @return The command to drive the robot.
-   */
-  public Command defaultDriveCommand(XboxController controller) {
-    return run(
-        () ->
-            driveWithExtras(
-                controller.getLeftY(),
-                controller.getLeftX(),
-                -controller.getRightX(),
-                controller.getRightTriggerAxis()));
   }
 
   /** This will handle adding Deadband, and adding boost to the drive. */

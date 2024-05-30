@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
@@ -20,9 +21,7 @@ public class ShootToAmpCommand extends SequentialCommandGroup {
             armSubsystem.moveToAmp(),
             new BasicRunShooterCommand(shooterSubsystem),
             ledSubsystem.getBlinkColorCommand(ExtraFunctions.getAllianceColor())),
-        new ParallelRaceGroup(
-            new LoadToShooterCommand(intakeSubsystem),
-            new BasicRunShooterCommand(shooterSubsystem)),
+        Commands.race(intakeSubsystem.loadShooter(), new BasicRunShooterCommand(shooterSubsystem)),
         ledSubsystem.getBlinkColorCommand(Color.kGreen));
   }
 }

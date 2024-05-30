@@ -19,10 +19,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.commands.LEDIdleCommand;
 import frc.robot.commands.ShootToAmpCommand;
-import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.SmartShootCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
@@ -100,8 +98,12 @@ public class RobotContainer {
     // was made for photonSim, but it's not used.
   }
 
+  private Command intakeAndBlink() {
+    return intakeSubsystem.intake().raceWith(ledSubsystem.blinkRedCommand());
+  }
+
   private void setupNamedCommands() {
-    NamedCommands.registerCommand("Intake", new BasicIntakeCommand(intakeSubsystem, ledSubsystem));
+    NamedCommands.registerCommand("Intake", intakeAndBlink());
     NamedCommands.registerCommand(
         "Shoot To Speaker",
         new SmartShootCommand(shooterSubsystem, intakeSubsystem, ledSubsystem, armSubsystem, driveSubsystem));
@@ -133,7 +135,7 @@ public class RobotContainer {
         .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
 
     new JoystickButton(controller, Button.kB.value) // Intake
-        .whileTrue(new SmartIntakeCommand(intakeSubsystem, ledSubsystem, controller));
+        .whileTrue(intakeSubsystem.intakeThenVibrate(controller));
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(

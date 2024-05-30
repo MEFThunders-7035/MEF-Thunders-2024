@@ -55,7 +55,7 @@ public class LEDSubsystem extends SubsystemBase implements AutoCloseable {
     lastSetBlinkingColor = Color.kBlack;
   }
 
-  public Command getRedBlinkCommand() {
+  public Command blinkRedCommand() {
     return this.run(this::blinkRed)
         .finallyDo(
             () -> {

@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
@@ -16,9 +17,7 @@ public class SmartShootCommand extends ParallelRaceGroup {
     super(
         new SequentialCommandGroup(
             new BasicRunShooterCommand(shooterSubsystem, ledSubsystem, waitTime),
-            new ParallelRaceGroup(
-                new BasicRunShooterCommand(shooterSubsystem),
-                new LoadToShooterCommand(intakeSubsystem))));
+            Commands.race(intakeSubsystem.loadShooter(), new BasicRunShooterCommand(shooterSubsystem))));
   }
 
   public SmartShootCommand(

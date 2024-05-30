@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
@@ -18,9 +16,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
@@ -32,7 +29,7 @@ import frc.utils.ExtraFunctions;
 import org.littletonrobotics.urcl.URCL;
 
 public class RobotContainer {
-  private final XboxController controller = new XboxController(0);
+  private final CommandXboxController controller = new CommandXboxController(0);
 
   private final SendableChooser<Command> autoChooser;
 
@@ -143,42 +140,29 @@ public class RobotContainer {
   }
 
   private void configureJoystickBindings() {
-    new JoystickButton(controller, Button.kA.value) // Handbrake
-        .whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
-
-    new JoystickButton(controller, Button.kB.value) // Intake
-        .whileTrue(intakeSubsystem.intakeThenVibrate(controller));
-
-    new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
+    controller.a().whileTrue(new RunCommand(driveSubsystem::setX, driveSubsystem));
+    controller.b().whileTrue(intakeSubsystem.intakeThenVibrate(controller));
+    controller
+        .y()
         .whileTrue(
             Commands.parallel(
                 driveSubsystem.driveFacingShooter(controller::getLeftY, controller::getLeftX),
                 smartShootWithArm()));
+    controller.x().whileTrue(shootToAmp());
 
-    new JoystickButton(controller, Button.kX.value).whileTrue(shootToAmp());
-
-    new JoystickButton(controller, Button.kStart.value) // Reset Heading
+    controller
+        .start()
         .onTrue(
             driveSubsystem
                 .runOnce(driveSubsystem::zeroFieldOrientation)
                 .alongWith(new PrintCommand("Zeroing Field Orientation"))
                 .ignoringDisable(true));
+    controller.back().whileTrue(intakeSubsystem.eject());
 
-    // This command is here incase the intake gets stuck.
-    new JoystickButton(controller, Button.kBack.value) // Force push note out of intake
-        .whileTrue(
-            new RunCommand(
-                () -> intakeSubsystem.setIntakeSpeed(-IntakeConstants.kIntakeSpeed),
-                intakeSubsystem));
+    controller.leftBumper().whileTrue(smartShoot());
+    controller.rightBumper().whileTrue(shooterSubsystem.intake());
 
-    new JoystickButton(controller, Button.kRightBumper.value) // Reverse Shooter to intake
-        .whileTrue(shooterSubsystem.shoot(() -> -1));
-
-    new JoystickButton(controller, Button.kLeftBumper.value).whileTrue(smartShoot());
-
-    new Trigger(() -> controller.getPOV() == 0)
-        // Move arm to 0.5, and set it there until the button is released.
-        .whileTrue(armSubsystem.moveToAmp());
+    controller.pov(0).whileTrue(armSubsystem.moveToAmp());
 
     configureMidiBindings();
   }

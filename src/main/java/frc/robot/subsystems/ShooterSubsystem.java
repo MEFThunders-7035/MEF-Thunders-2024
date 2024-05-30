@@ -26,6 +26,10 @@ public class ShooterSubsystem extends SubsystemBase implements AutoCloseable {
     return shoot(() -> ShooterConstants.kShooterSpeed);
   }
 
+  public Command intake() {
+    return shoot(() -> -1);
+  }
+
   public Command stop() {
     return runOnce(shooterMotor::stopMotor);
   }

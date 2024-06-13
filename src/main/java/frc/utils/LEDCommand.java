@@ -53,4 +53,9 @@ public class LEDCommand {
   public String getName() {
     return commandName;
   }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

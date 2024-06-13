@@ -21,7 +21,7 @@ public class ShootToAmpCommand extends SequentialCommandGroup {
             LEDSystem.getBlinkColorCommand(ExtraFunctions.getAllianceColor())),
         new ParallelRaceGroup(
             new LoadToShooterCommand(intakeSubsystem),
-            new BasicRunShooterCommand(shooterSubsystem)),
-        LEDSystem.getBlinkColorCommand(Color.kGreen));
+            new BasicRunShooterCommand(shooterSubsystem),
+            LEDSystem.getBlinkColorCommand(Color.kGreen)));
   }
 }

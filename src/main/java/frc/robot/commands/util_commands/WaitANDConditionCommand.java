@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.util_commands;
 
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import java.util.function.BooleanSupplier;

@@ -1,7 +1,9 @@
-package frc.robot.commands;
+package frc.robot.commands.intake_and_shooter;
 
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.arm_commands.MoveArmToShooterCommand;
+import frc.robot.commands.drive_commands.DriveFacingShooter;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commands.MoveArmToAmp;
+import frc.robot.commands.arm_commands.MoveArmToAmp;
 import frc.robot.subsystems.ArmSubsystem;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

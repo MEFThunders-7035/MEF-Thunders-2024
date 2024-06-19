@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.simulation.SimHooks;
-import frc.robot.commands.LoadToShooterCommand;
+import frc.robot.commands.intake_and_shooter.LoadToShooterCommand;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;
 import org.junit.jupiter.api.AfterEach;

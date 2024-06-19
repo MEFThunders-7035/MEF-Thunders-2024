@@ -32,23 +32,23 @@ class IntakeTests {
 
   @Test
   void testIntakeNoteDetected() {
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     assertEquals(true, intakeSubsystem.hasNote(), "Intake should detect a note");
-    ColorSensorV3Wrapped.setRGBD(0, 0, 0, 0);
+    ColorSensorV3Wrapped.setNoteColor(false);
     assertEquals(false, intakeSubsystem.hasNote(), "Intake should not detect a note");
     // TODO: Add more tests for different RGBD values
   }
 
   @Test
   void testIntakeStopsOnNote() {
-    ColorSensorV3Wrapped.setRGBD(0, 0, 0, 0);
+    ColorSensorV3Wrapped.setNoteColor(false);
     intakeSubsystem.setIntakeSpeed(0.5);
     assertEquals(
         0.5,
         intakeSubsystem.getArmIntakeSpeed(),
         0.001,
         "Intake motor should be running when a note is not detected");
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     Timer.delay(0.1); // wait until note is detected
     assertEquals(
         0,
@@ -59,7 +59,7 @@ class IntakeTests {
 
   @Test
   void testIntakeForcePushes() {
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     intakeSubsystem.setIntakeSpeed(0.5, 0, true); // force push note out
     assertEquals(
         0.5,
@@ -76,7 +76,7 @@ class IntakeTests {
 
   @Test
   void testIntakeSubsystemWithNote() {
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     intakeSubsystem.setIntakeSpeed(0.5);
     assertEquals(
         0,

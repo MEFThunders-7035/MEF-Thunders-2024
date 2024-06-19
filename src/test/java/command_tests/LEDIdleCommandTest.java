@@ -51,13 +51,13 @@ class LEDIdleCommandTest extends CommandTestBase {
         new LEDIdleCommand(ledSubsystem, intakeSubsystem).ignoringDisable(true));
 
     // * check without Note
-    ColorSensorV3Wrapped.setRGBD(0, 0, 0, 0);
+    ColorSensorV3Wrapped.setNoteColor(false);
     commandScheduler.run();
     Timer.delay(0.1); // let led thread do its thing
     checkForColorInAll(ledSubsystem, Color.kRed, "Color should be red when no Note is detected");
 
     // * check with Note
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     commandScheduler.run();
     Timer.delay(0.1); // let led thread do its thing
     checkForColorInAll(ledSubsystem, Color.kGreen, "Color should be green when Note is detected");

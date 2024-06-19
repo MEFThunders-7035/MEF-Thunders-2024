@@ -53,7 +53,7 @@ class BasicIntakeTest extends CommandTestBase {
   @Test
   void testCommandEnds() {
     commandScheduler.run();
-    ColorSensorV3Wrapped.setRGBD(2500, 0, 0, 900);
+    ColorSensorV3Wrapped.setNoteColor(true);
     commandScheduler.run();
     assertEquals(true, intakeCommand.isFinished(), "Command should be finished when ending");
     assertEquals(0, intakeSubsystem.getArmIntakeSpeed(), "Motor should stop after detecting color");

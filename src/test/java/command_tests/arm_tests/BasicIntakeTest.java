@@ -35,8 +35,8 @@ class BasicIntakeTest extends CommandTestBase {
 
   @AfterEach
   public void tearDown() {
-    intakeSubsystem.close();
     super.tearDown();
+    intakeSubsystem.close();
   }
 
   @Test

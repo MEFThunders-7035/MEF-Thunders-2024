@@ -23,8 +23,8 @@ import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
 import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.commands.ShootToAmpCommand;
+import frc.robot.commands.ShootToSpeakerCommand;
 import frc.robot.commands.SmartIntakeCommand;
-import frc.robot.commands.SmartShootCommand;
 import frc.robot.commands.led_commands.LEDIdleCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
@@ -58,7 +58,7 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser();
     autoChooser.addOption(
         "Shoot To Shooter",
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
+        new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
     PhotonCameraSystem.getAprilTagWithID(0); // Load the class before enable.
     SmartDashboard.putData("Auto Chooser", autoChooser);
     if (RobotBase.isSimulation()) {
@@ -108,7 +108,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Intake", new BasicIntakeCommand(intakeSubsystem));
     NamedCommands.registerCommand(
         "Shoot To Speaker",
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
+        new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem));
     NamedCommands.registerCommand(
         "Shoot To Amp", new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
   }
@@ -142,7 +142,7 @@ public class RobotContainer {
 
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(
-            new SmartShootCommand(
+            new ShootToSpeakerCommand(
                 shooterSubsystem,
                 intakeSubsystem,
                 armSubsystem,
@@ -171,7 +171,7 @@ public class RobotContainer {
         .whileTrue(new RunCommand(() -> shooterSubsystem.setShooterSpeed(-1), shooterSubsystem));
 
     new JoystickButton(controller, Button.kLeftBumper.value)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
 
     new Trigger(() -> controller.getPOV() == 0)
         // Move arm to 0.5, and set it there until the button is released.
@@ -189,10 +189,10 @@ public class RobotContainer {
         .onTrue(armSubsystem.runOnce(armSubsystem::resetEncoder).ignoringDisable(true));
 
     new JoystickButton(midiController, 3)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
 
     new JoystickButton(midiController, 4)
-        .whileTrue(new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        .whileTrue(new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
 
     new JoystickButton(midiController, 16)
         .onTrue(

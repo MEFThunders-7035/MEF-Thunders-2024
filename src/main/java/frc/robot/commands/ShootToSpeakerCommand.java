@@ -8,10 +8,10 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import java.util.function.DoubleSupplier;
 
-public class SmartShootCommand extends ParallelRaceGroup {
+public class ShootToSpeakerCommand extends ParallelRaceGroup {
   private static final double waitTime = 2.5;
 
-  public SmartShootCommand(ShooterSubsystem shooterSubsystem, IntakeSubsystem intakeSubsystem) {
+  public ShootToSpeakerCommand(ShooterSubsystem shooterSubsystem, IntakeSubsystem intakeSubsystem) {
     super(
         new SequentialCommandGroup(
             new BasicRunShooterCommand(shooterSubsystem, waitTime),
@@ -20,7 +20,7 @@ public class SmartShootCommand extends ParallelRaceGroup {
                 new LoadToShooterCommand(intakeSubsystem))));
   }
 
-  public SmartShootCommand(
+  public ShootToSpeakerCommand(
       ShooterSubsystem shooterSubsystem,
       IntakeSubsystem intakeSubsystem,
       ArmSubsystem armSubsystem,
@@ -28,10 +28,10 @@ public class SmartShootCommand extends ParallelRaceGroup {
     super(
         // Constantly move the arm until all the other commands finish.
         new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
   }
 
-  public SmartShootCommand(
+  public ShootToSpeakerCommand(
       ShooterSubsystem shooterSubsystem,
       IntakeSubsystem intakeSubsystem,
       ArmSubsystem armSubsystem,
@@ -43,6 +43,6 @@ public class SmartShootCommand extends ParallelRaceGroup {
         new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
         new DriveFacingShooter(driveSubsystem, xSpeed, ySpeed),
         // The finishing command will be this one:
-        new SmartShootCommand(shooterSubsystem, intakeSubsystem));
+        new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
   }
 }

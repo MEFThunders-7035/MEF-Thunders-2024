@@ -82,6 +82,14 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
         && red > colorSensor.getGreen();
   }
 
+  public double getGroundIntakeSpeed() {
+    return groundIntake.get();
+  }
+
+  public double getArmIntakeSpeed() {
+    return armIntake.get();
+  }
+
   public void setIntakeSpeed(double armSpeed, double groundSpeed, boolean force) {
     if (armSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
       armIntake.set(0);

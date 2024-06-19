@@ -220,7 +220,8 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   private Optional<Pose3d> getTagPose(int id) {
-    var tag = PhotonCameraSystem.getFieldLayout().getTagPose(id);
+    var tagField = PhotonCameraSystem.getFieldLayout();
+    var tag = tagField.getTagPose(id);
 
     if (tag.isEmpty()) {
       DriverStation.reportError("Field Layout Couldn't be loaded", false);
@@ -251,13 +252,13 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     if (tag.isEmpty()) return new Rotation2d();
 
     return tag.get()
-        .getTranslation()
+        .getTranslation() // Get the translation of the tag
         .toTranslation2d()
-        .minus(getPose().getTranslation())
+        .minus(getPose().getTranslation()) // Subtract the robot's translation
         .getAngle()
-        .minus(getRotation2d())
-        .rotateBy(Rotation2d.fromDegrees(180))
-        .times(-1);
+        .minus(getRotation2d()) // Subtract the robot's rotation
+        .rotateBy(Rotation2d.fromDegrees(180)) // Rotate by 180 so the back is 0
+        .times(-1); // Invert the angle, so the back is a positive angle that can be inverted.
   }
 
   public Pose2d getPose() {

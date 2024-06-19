@@ -1,8 +1,9 @@
-package frc.robot.commands;
+package frc.robot.commands.intake_and_shooter;
 
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.commands.util_commands.WaitANDConditionCommand;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class LoadToShooterCommand extends ParallelRaceGroup {

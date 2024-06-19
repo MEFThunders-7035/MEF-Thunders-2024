@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.simulation.SimHooks;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.commands.BasicRunShooterCommand;
+import frc.robot.commands.intake_and_shooter.BasicRunShooterCommand;
 import frc.robot.subsystems.ShooterSubsystem;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import command_tests.utils.CommandTestBase;
 import edu.wpi.first.wpilibj.simulation.SimHooks;
-import frc.robot.commands.WaitANDConditionCommand;
+import frc.robot.commands.util_commands.WaitANDConditionCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.simulation.SimHooks;
 import edu.wpi.first.wpilibj.simulation.XboxControllerSim;
-import frc.robot.commands.VibrateControllerCommand;
+import frc.robot.commands.util_commands.VibrateControllerCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -488,10 +488,11 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
       boolean fieldRelative,
       boolean rateLimit) {
     final double sens = OIConstants.kDriveSensitivity; // The rest will be added by "boost"
+    final var boostMultiplier = sens * (1 - boost) + boost;
     drive(
-        MathUtil.applyDeadband(xSpeed * (sens + (boost * (1 - sens))), deadband),
-        MathUtil.applyDeadband(ySpeed * (sens + (boost * (1 - sens))), deadband),
-        MathUtil.applyDeadband(rot * sens, deadband),
+        MathUtil.applyDeadband(xSpeed * boostMultiplier, deadband),
+        MathUtil.applyDeadband(ySpeed * boostMultiplier, deadband),
+        MathUtil.applyDeadband(rot * boostMultiplier, deadband),
         fieldRelative,
         rateLimit);
     SmartDashboard.putNumber("xSpeed: ", xSpeed);

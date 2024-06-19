@@ -33,9 +33,9 @@ class DriveTests extends DriveSubsystemTestBase {
 
   @Test
   void testDriveChassisSpeed() {
-    driveSubsystem.driveRobotRelative(new ChassisSpeeds(2, 2, 0));
-
     var shouldBe = new ChassisSpeeds(2, 2, 0);
+    driveSubsystem.driveRobotRelative(shouldBe);
+
     var currentlyIs = DriveTestUtils.getDesiredChassisSpeeds(driveSubsystem);
 
     DriveTestUtils.checkIfEqual(shouldBe, currentlyIs);

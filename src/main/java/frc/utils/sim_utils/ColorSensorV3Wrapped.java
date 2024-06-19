@@ -53,6 +53,14 @@ public class ColorSensorV3Wrapped extends ColorSensorV3 implements AutoCloseable
     rgbd[3] = distance;
   }
 
+  public static void setNoteColor(boolean isNote) {
+    if (isNote) {
+      setRGBD(1000, 300, 0, 1500);
+    } else {
+      setRGBD(0, 0, 0, 0);
+    }
+  }
+
   @Override
   public int getRed() {
     // we check if getRed() is 0 because the color sensor returns 0 when its not being "simulated"

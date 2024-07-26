@@ -162,6 +162,25 @@ public final class Constants {
     }
   }
 
+  public static final class ArmConstants {
+    public static final double AMP_POSITION = 0.5;
+
+    public static final class ArmPIDConstants {
+      public static final double kP = 3; // 3
+      public static final double kI = 0.02; // 0.02
+      public static final double kD = 8; // 4
+      public static final double kFF = 0.0; // 0
+
+      // Feedforward gains
+      // ! TODO: TUNE
+      public static final double kS = 0.0;
+      public static final double kG = 2;
+      public static final double kV = 0.0;
+
+      public static final double kAllowedError = 0.01;
+    }
+  }
+
   public static final class ShooterConstants {
     public static final int kShooterMotorPwmID = 0;
 

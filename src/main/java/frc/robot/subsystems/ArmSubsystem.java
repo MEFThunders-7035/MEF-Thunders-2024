@@ -28,6 +28,8 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
 
   private static final double kArmParallelDifference = 0.00339;
 
+  private double desiredPosition = 0;
+
   public ArmSubsystem() {
     arm = new CANSparkMAXWrapped(IntakeConstants.kArmMotorCanID, MotorType.kBrushed);
     armFollower =
@@ -94,6 +96,14 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
+  public boolean isArmAtPosition() {
+    return isArmAtPosition(desiredPosition);
+  }
+
+  public double getDesiredPosition() {
+    return desiredPosition;
+  }
+
   public void resetEncoder() {
     encoder.setPosition(0);
   }
@@ -112,6 +122,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     // the hand is slightly down, which means the 0 value is
     // actually "kArmParallelDifference" down so we compensate for that in the calculation
     position = MathUtil.clamp(position, 0, 0.5);
+    desiredPosition = position;
     var calculation =
         feedforward.calculate(
             (position - kArmParallelDifference) * Math.PI,

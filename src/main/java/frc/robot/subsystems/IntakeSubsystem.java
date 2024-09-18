@@ -97,12 +97,12 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
       armIntake.set(armSpeed);
     }
 
+    isForced = force;
+
     if (groundSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
       groundIntake.set(0);
       return;
     }
-
-    isForced = force;
 
     groundIntake.set(groundSpeed);
   }

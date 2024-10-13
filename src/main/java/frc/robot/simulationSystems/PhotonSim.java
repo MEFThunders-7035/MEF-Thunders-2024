@@ -2,7 +2,7 @@ package frc.robot.simulationSystems;
 
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform3d;
+import frc.robot.Constants.CameraConstants.PiCamera;
 import frc.robot.subsystems.PhotonCameraSystem;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.VisionSystemSim;
@@ -14,7 +14,7 @@ public class PhotonSim {
   public static void setupSim() {
     cameraSim = new PhotonCameraSim(PhotonCameraSystem.getCamera());
     visionSim = new VisionSystemSim(cameraSim.getCamera().getName());
-    visionSim.addCamera(cameraSim, new Transform3d());
+    visionSim.addCamera(cameraSim, PiCamera.robotToCam);
     visionSim.addAprilTags(AprilTagFields.k2024Crescendo.loadAprilTagLayoutField());
   }
 

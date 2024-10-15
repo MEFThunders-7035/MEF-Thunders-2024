@@ -147,12 +147,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
               rearLeft.getPosition(),
               rearRight.getPosition()
             });
-    Pose2d poseWithRobotGyroRotation = new Pose2d(pose.getTranslation(), getRotation2d());
-    field.setRobotPose(poseWithRobotGyroRotation);
+    field.setRobotPose(pose);
     updatePoseWithVision();
     gyroSim.updateOdometry(getModuleDesiredStates());
     SmartDashboard.putData(field);
-    SmartDashboard.putNumber("Rotation", getHeading());
+    SmartDashboard.putNumber("Rotation", getRotation2d().getDegrees());
+    SmartDashboard.putNumber("Rotation-Radians", getRotation2d().getRadians());
     SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
 
     publisher.set(
@@ -208,9 +208,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private void updatePoseWithVision() {
     var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
     SmartDashboard.putBoolean("AprilTag Seen", poseOpt.isPresent());
-    if (poseOpt.isPresent()) {
-      swerveOdometry.addVisionMeasurement(
-          poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
+    if (poseOpt.isPresent() && poseOpt.get().targetsUsed.size() > 1) {
+      // Do not use the rotation from the vision system in any situation as the data we receive is
+      // not reliable. navX rotation is A LOT MORE reliable so we will use that instead.
+      Pose2d receivedPose = poseOpt.get().estimatedPose.toPose2d();
+      Pose2d poseToUse = new Pose2d(receivedPose.getTranslation(), getRotation2d());
+      swerveOdometry.addVisionMeasurement(poseToUse, poseOpt.get().timestampSeconds);
     }
 
     SmartDashboard.putNumber("Distance To Shooter", getDistanceToShooter());

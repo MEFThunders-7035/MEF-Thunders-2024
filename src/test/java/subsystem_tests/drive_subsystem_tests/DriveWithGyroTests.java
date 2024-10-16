@@ -2,7 +2,6 @@ package subsystem_tests.drive_subsystem_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.DriveConstants;
@@ -21,14 +20,6 @@ class DriveWithGyroTests extends DriveSubsystemTestBase {
   @AfterEach
   public void tearDown() {
     super.tearDown();
-  }
-
-  @Test
-  void printAllSimNames() {
-    for (int i = 1; i <= 16; i++) {
-      var deviceName = SimDeviceDataJNI.getSimDeviceName(i);
-      System.out.println(deviceName);
-    }
   }
 
   @Test

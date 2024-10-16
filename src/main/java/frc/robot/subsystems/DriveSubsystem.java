@@ -30,6 +30,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.simulationSystems.SwerveGyroSimulation;
 import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
@@ -73,6 +74,9 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double prevTime = WPIUtilJNI.now() * 1e-6;
+
+  SwerveGyroSimulation gyroSim =
+      new SwerveGyroSimulation(); // required for getRotation2d() in simulation
 
   SwerveDrivePoseEstimator swerveOdometry =
       new SwerveDrivePoseEstimator(
@@ -145,36 +149,24 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
             });
     field.setRobotPose(pose);
     updatePoseWithVision();
+    gyroSim.updateOdometry(getModuleDesiredStates());
     SmartDashboard.putData(field);
-    SmartDashboard.putNumber("Rotation", getHeading());
+    SmartDashboard.putNumber("Rotation", getRotation2d().getDegrees());
+    SmartDashboard.putNumber("Rotation-Radians", getRotation2d().getRadians());
     SmartDashboard.putBoolean("Force Robot Oriented", forceRobotOriented);
-    if (RobotBase.isReal()) {
-      publisher.set(
-          new SwerveModuleState[] {
-            frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
-          });
-    }
-  }
 
-  @Override
-  public void simulationPeriodic() {
-    var states = getModuleDesiredStates();
-    publisher.set(states);
-    SmartDashboard.putNumber("Front Left Swerve Speed", states[0].speedMetersPerSecond);
-    SmartDashboard.putNumber("Front Left Swerve Rotation", states[0].angle.getDegrees());
-    SmartDashboard.putNumber("Front Right Swerve Speed", states[1].speedMetersPerSecond);
-    SmartDashboard.putNumber("Front Right Swerve Rotation", states[1].angle.getDegrees());
-    SmartDashboard.putNumber("Rear Left Swerve Speed", states[2].speedMetersPerSecond);
-    SmartDashboard.putNumber("Rear Left Swerve Rotation", states[2].angle.getDegrees());
-    SmartDashboard.putNumber("Rear Right Swerve Speed", states[3].speedMetersPerSecond);
-    SmartDashboard.putNumber("Rear Right Swerve Rotation", states[3].angle.getDegrees());
+    publisher.set(
+        new SwerveModuleState[] {
+          frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState(),
+        });
 
-    var xPos = SmartDashboard.getNumber("X position", 0);
-    var yPos = SmartDashboard.getNumber("Y position", 0);
-
-    if (xPos != 0 && yPos != 0) {
-      resetOdometry(new Pose2d(xPos, yPos, getRotation2d()));
-    }
+    field
+        .getObject("XModules")
+        .setPoses(
+            frontLeft.getRealWorldPose(getPose()),
+            frontRight.getRealWorldPose(getPose()),
+            rearLeft.getRealWorldPose(getPose()),
+            rearRight.getRealWorldPose(getPose()));
   }
 
   @Override
@@ -191,10 +183,21 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     closeNavX();
   }
 
+  /**
+   * Closes the navX with Reflection shenanigans. I couldn't find a way to close the navX without
+   * reflection, so I had to use reflection to access the private field and close it.
+   *
+   * <p>WARNING: This method is not guaranteed to work on all platforms, and may not work on macOS.
+   * This method is only used for testing and simulation purposes, and should not be used in a
+   * competition robot.
+   *
+   * <p>This method is not required when simulating in windows, but is required for linux. macOS is
+   * untested.
+   */
   private void closeNavX() {
     try {
       var sd = AHRS.class.getDeclaredField("m_simDevice");
-      sd.setAccessible(true);
+      sd.setAccessible(true); // NOSONAR
       var amazing = (SimDevice) sd.get(navX);
       amazing.close();
     } catch (Exception e) {
@@ -205,9 +208,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private void updatePoseWithVision() {
     var poseOpt = PhotonCameraSystem.getEstimatedGlobalPose(field.getRobotPose());
     SmartDashboard.putBoolean("AprilTag Seen", poseOpt.isPresent());
-    if (poseOpt.isPresent()) {
-      swerveOdometry.addVisionMeasurement(
-          poseOpt.get().estimatedPose.toPose2d(), poseOpt.get().timestampSeconds);
+    if (poseOpt.isPresent() && poseOpt.get().targetsUsed.size() > 1) {
+      // Do not use the rotation from the vision system in any situation as the data we receive is
+      // not reliable. navX rotation is A LOT MORE reliable so we will use that instead.
+      Pose2d receivedPose = poseOpt.get().estimatedPose.toPose2d();
+      Pose2d poseToUse = new Pose2d(receivedPose.getTranslation(), getRotation2d());
+      swerveOdometry.addVisionMeasurement(poseToUse, poseOpt.get().timestampSeconds);
     }
 
     SmartDashboard.putNumber("Distance To Shooter", getDistanceToShooter());
@@ -251,12 +257,15 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 
     if (tag.isEmpty()) return new Rotation2d();
 
-    return tag.get()
-        .getTranslation() // Get the translation of the tag
-        .toTranslation2d()
-        .minus(getPose().getTranslation()) // Subtract the robot's translation
-        .getAngle()
-        .minus(getRotation2d()) // Subtract the robot's rotation
+    Rotation2d robotFontsRotationDifferenceToShooter =
+        tag.get()
+            .getTranslation() // Get the translation of the tag
+            .toTranslation2d()
+            .minus(getPose().getTranslation()) // Subtract the robot's translation
+            .getAngle()
+            .minus(getRotation2d()); // Subtract the robot's rotation
+
+    return robotFontsRotationDifferenceToShooter
         .rotateBy(Rotation2d.fromDegrees(180)) // Rotate by 180 so the back is 0
         .times(-1); // Invert the angle, so the back is a positive angle that can be inverted.
   }
@@ -466,6 +475,9 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   public Rotation2d getRotation2d() {
+    if (RobotBase.isSimulation() && navX.getAngle() == 0) {
+      return gyroSim.getRotation2d();
+    }
     return navX.getRotation2d();
   }
 

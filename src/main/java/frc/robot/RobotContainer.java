@@ -3,7 +3,6 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -85,9 +84,9 @@ public class RobotContainer {
             () -> {
               System.out.println("Starting PhotonSim");
               while (true) {
-                PhotonSim.update(new Pose2d());
+                PhotonSim.update(driveSubsystem.getPose());
                 // I do not want to use a busy loop, so I added a delay.
-                Timer.delay(0.2);
+                Timer.delay(0.05);
               }
             },
             "simThread");

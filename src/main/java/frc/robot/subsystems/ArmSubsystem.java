@@ -8,14 +8,15 @@ import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.SparkRelativeEncoder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
+import java.util.function.DoubleSupplier;
 
 public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   // We only have RelativeEncoder for now. Its better than nothing.
@@ -29,8 +30,8 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
 
   private double desiredPosition = 0;
 
-  enum ArmState {
-    TOP,
+  public enum ArmState {
+    AMP,
     BOTTOM,
     IDLE
   }
@@ -138,8 +139,8 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
 
   public Command set(ArmState state) {
     switch (state) {
-      case TOP:
-        return setArmToTop();
+      case AMP:
+        return setArmToAmp();
       case BOTTOM:
         return setArmToBottom();
       case IDLE:
@@ -149,12 +150,23 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     }
   }
 
-  public Command setArmToTop() {
-    return set(0.5);
+  public Command setArmToAmp() {
+    return set(ArmConstants.AMP_POSITION);
   }
 
   public Command setArmToBottom() {
     return set(0.0);
+  }
+
+  /**
+   * Warning, command will not end unless interrupted since you are probably using this command
+   * while moving around
+   *
+   * @return The command object that sets the arm to the shooter.
+   */
+  public Command setArmToShooter(DoubleSupplier distanceToShooter) {
+    return this.runEnd(
+        () -> ExtraFunctions.getAngleFromDistance(distanceToShooter.getAsDouble()), this::stopArm);
   }
 
   public Command set(double position) {
@@ -162,8 +174,7 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
         .until(this::isArmAtPosition);
   }
 
-  @Deprecated(forRemoval = true)
-  public void stopArm() {
+  private void stopArm() {
     arm.stopMotor();
   }
 
@@ -190,35 +201,15 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   /**
    * Sets the arm to a given position.
    *
-   * @deprecated To switch to command based subsystem style, use {@link #set(double)} instead.
    * @param position The rotation the arm should be at. (from 0 to 1)
    * @see #setArmToPosition(int)
    */
-  @Deprecated(forRemoval = true)
-  public void setArmToPosition(double position) {
+  private void setArmToPosition(double position) {
     position = MathUtil.clamp(position, 0, 0.5);
     desiredPosition = position;
 
     double feedForwardCalculation = calculateFeedForward(position);
     pidController.setReference(
         position, ControlType.kPosition, 0, feedForwardCalculation, ArbFFUnits.kVoltage);
-  }
-
-  public void setArmToAprilTag() {
-    var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
-    boolean isBlueAlliance = currentAlliance == DriverStation.Alliance.Blue;
-    int idToTrack = isBlueAlliance ? 7 : 4; // 7 is blue mid speaker, 4 is red mid speaker
-
-    var target = PhotonCameraSystem.getAprilTagWithID(idToTrack);
-
-    if (target.isEmpty()) {
-      return;
-    }
-
-    double distance = target.get().getArea(); // will be from 0 to 100. (Hopefully?)
-
-    double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.2, 0.05); // between 10 and 20 deg
-
-    setArmToPosition(armAngle);
   }
 }

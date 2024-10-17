@@ -1,12 +1,12 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-import java.util.function.DoubleSupplier;
 
 public class ShootToSpeakerCommand extends ParallelRaceGroup {
   private static final double waitTime = 2.5;
@@ -15,9 +15,7 @@ public class ShootToSpeakerCommand extends ParallelRaceGroup {
     super(
         new SequentialCommandGroup(
             new BasicRunShooterCommand(shooterSubsystem, waitTime),
-            new ParallelRaceGroup(
-                new BasicRunShooterCommand(shooterSubsystem),
-                new LoadToShooterCommand(intakeSubsystem))));
+            new ParallelRaceGroup(shooterSubsystem.run(), intakeSubsystem.loadToShooter())));
   }
 
   public ShootToSpeakerCommand(
@@ -27,7 +25,7 @@ public class ShootToSpeakerCommand extends ParallelRaceGroup {
       DriveSubsystem driveSubsystem) {
     super(
         // Constantly move the arm until all the other commands finish.
-        new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
+        armSubsystem.setArmToShooter(driveSubsystem::getDistanceToShooter),
         new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
   }
 
@@ -36,12 +34,11 @@ public class ShootToSpeakerCommand extends ParallelRaceGroup {
       IntakeSubsystem intakeSubsystem,
       ArmSubsystem armSubsystem,
       DriveSubsystem driveSubsystem,
-      DoubleSupplier xSpeed,
-      DoubleSupplier ySpeed) {
+      XboxController controller) {
     super(
         // Constantly move the arm until all the other commands finish.
-        new MoveArmToShooterCommand(armSubsystem, driveSubsystem),
-        new DriveFacingShooter(driveSubsystem, xSpeed, ySpeed),
+        armSubsystem.setArmToShooter(driveSubsystem::getDistanceToShooter),
+        DriveCommands.driveFacingShooter(driveSubsystem, controller),
         // The finishing command will be this one:
         new ShootToSpeakerCommand(shooterSubsystem, intakeSubsystem));
   }

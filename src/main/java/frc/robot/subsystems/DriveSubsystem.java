@@ -6,7 +6,6 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.hal.SimDevice;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -23,13 +22,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants.DrivePIDController;
 import frc.robot.Constants.AutoConstants.RotationPIDController;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.MotorConstants;
 import frc.robot.Constants.DriveConstants.SwerveModuleConstants;
-import frc.robot.Constants.OIConstants;
 import frc.robot.simulationSystems.SwerveGyroSimulation;
 import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
@@ -332,13 +331,13 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
    * @param ySpeed
    * @param rot
    */
-  public void driveCommand(
+  public Command driveCommand(
       DoubleSupplier xSpeed,
       DoubleSupplier ySpeed,
       DoubleSupplier rot,
       BooleanSupplier fieldRelative,
       BooleanSupplier rateLimit) {
-    this.runEnd(
+    return this.runEnd(
         () ->
             drive(
                 xSpeed.getAsDouble(),
@@ -349,6 +348,19 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
         this::stop);
   }
 
+  public Command driveCommand(
+      DoubleSupplier xSpeed,
+      DoubleSupplier ySpeed,
+      DoubleSupplier rot,
+      boolean fieldRelative,
+      boolean rateLimit) {
+    return driveCommand(xSpeed, ySpeed, rot, () -> fieldRelative, () -> rateLimit);
+  }
+
+  public Command driveCommand(DoubleSupplier xSpeed, DoubleSupplier ySpeed, DoubleSupplier rot) {
+    return driveCommand(xSpeed, ySpeed, rot, true, true);
+  }
+
   private void stop() {
     drive(0, 0, 0, false, false);
   }
@@ -356,15 +368,13 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   /**
    * Method to drive the robot using joystick info. Taken straight from REV MAXSwerve Template.
    *
-   * @deprecated Use {@link #driveCommand(double, double, double)} instead.
    * @param xSpeed Speed of the robot in the x direction (forward).
    * @param ySpeed Speed of the robot in the y direction (sideways).
    * @param rot Angular rate of the robot.
    * @param fieldRelative Whether the provided x and y speeds are relative to the field.
    * @param rateLimit Whether to enable rate limiting for smoother control.
    */
-  @Deprecated
-  public void drive(
+  private void drive(
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     double xSpeedCommanded;
     double ySpeedCommanded;
@@ -434,32 +444,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeedDelivered, ySpeedDelivered, rotDelivered, getFieldOrientedRotation2d())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
-    frontLeft.setDesiredState(swerveModuleStates[0]);
-    frontRight.setDesiredState(swerveModuleStates[1]);
-    rearLeft.setDesiredState(swerveModuleStates[2]);
-    rearRight.setDesiredState(swerveModuleStates[3]);
-  }
-
-  /**
-   * Same as {@link #drive(double, double, double, boolean, boolean)} but with fieldRelative and
-   * rate limit set to true for convenience.
-   *
-   * @deprecated Will turn private in the future as we switch to fully command based style
-   *     subsystems. Use {@link #driveCommand(DoubleSupplier, DoubleSupplier, DoubleSupplier,
-   *     BooleanSupplier, BooleanSupplier)} instead.
-   * @param xSpeed
-   * @param ySpeed
-   * @param rot
-   */
-  @Deprecated
-  public void drive(double xSpeed, double ySpeed, double rot) {
-    drive(xSpeed, ySpeed, rot, true, true);
+    setModuleStates(swerveModuleStates);
   }
 
   /** Sets the wheels into an X formation to prevent movement. */
+  @Deprecated(forRemoval = true)
   public void setX() {
     frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
     frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
@@ -472,7 +462,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
    *
    * @param desiredStates The desired SwerveModule states.
    */
-  public void setModuleStates(SwerveModuleState[] desiredStates) {
+  private void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         desiredStates, DriveConstants.kMaxSpeedMetersPerSecond);
     frontLeft.setDesiredState(desiredStates[0]);
@@ -541,36 +531,6 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
    */
   public double getTurnRate() {
     return navX.getRate();
-  }
-
-  /** This will handle adding Deadband, and adding boost to the drive. */
-  public void driveWithExtras(
-      double xSpeed,
-      double ySpeed,
-      double rot,
-      double boost,
-      double deadband,
-      boolean fieldRelative,
-      boolean rateLimit) {
-    final double sens = OIConstants.kDriveSensitivity; // The rest will be added by "boost"
-    final var boostMultiplier = sens * (1 - boost) + boost;
-    drive(
-        MathUtil.applyDeadband(xSpeed * boostMultiplier, deadband),
-        MathUtil.applyDeadband(ySpeed * boostMultiplier, deadband),
-        MathUtil.applyDeadband(rot * boostMultiplier, deadband),
-        fieldRelative,
-        rateLimit);
-    SmartDashboard.putNumber("xSpeed: ", xSpeed);
-    SmartDashboard.putNumber("ySpeed: ", ySpeed);
-  }
-
-  public void driveWithExtras(
-      double xSpeed, double ySpeed, double rot, double boost, double deadband) {
-    driveWithExtras(xSpeed, ySpeed, rot, boost, deadband, true, true);
-  }
-
-  public void driveWithExtras(double xSpeed, double ySpeed, double rot, double boost) {
-    driveWithExtras(xSpeed, ySpeed, rot, boost, OIConstants.kDriveDeadband);
   }
 
   private Rotation2d getFieldOrientedRotation2d() {

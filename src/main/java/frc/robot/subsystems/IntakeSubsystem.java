@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
-import frc.robot.commands.LoadToShooterCommand;
 import frc.robot.commands.VibrateControllerCommand;
 import frc.robot.commands.WaitANDConditionCommand;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
@@ -99,6 +98,14 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     return this.runOnce(this::stopMotors);
   }
 
+  public Command run(DoubleSupplier speed) {
+    return this.runIntake(speed.getAsDouble(), speed.getAsDouble(), false);
+  }
+
+  public Command run(double speed) {
+    return this.runIntake(speed, speed, false);
+  }
+
   public Command run() {
     return this.runIntake(
         IntakeConstants.kArmIntakeRunSpeed, IntakeConstants.kGroundIntakeRunSpeed, false);
@@ -116,7 +123,6 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
             new WaitANDConditionCommand(0.5, () -> !hasNote())); // Stop when we have a note.
   }
 
-  @SuppressWarnings("removal")
   public Command runIntake(
       DoubleSupplier armSpeed, DoubleSupplier groundSpeed, BooleanSupplier force) {
     return this.runEnd(
@@ -129,23 +135,18 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     return runIntake(() -> armSpeed, () -> groundSpeed, () -> force);
   }
 
-  public Command loadToShooterCommand() {
-    return new LoadToShooterCommand(this);
-  }
-
   public Command vibrateControllerOnNoteCommand(XboxController controller) {
     return new VibrateControllerCommand(controller, 2, 1, 0.2)
         .alongWith(new PrintCommand("Note!"))
         .beforeStarting(new WaitUntilCommand(this::hasNote));
   }
 
-  public void stopMotors() {
+  private void stopMotors() {
     armIntake.stopMotor();
     groundIntake.stopMotor();
   }
 
-  @Deprecated(forRemoval = true)
-  public void setIntakeSpeed(double armSpeed, double groundSpeed, boolean force) {
+  private void setIntakeSpeed(double armSpeed, double groundSpeed, boolean force) {
     if (armSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
       armIntake.set(0);
     } else {
@@ -160,15 +161,5 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     }
 
     groundIntake.set(groundSpeed);
-  }
-
-  @Deprecated(forRemoval = true)
-  public void setIntakeSpeed(double speed, boolean force) {
-    setIntakeSpeed(speed, speed, force);
-  }
-
-  @Deprecated(forRemoval = true)
-  public void setIntakeSpeed(double speed) {
-    setIntakeSpeed(speed, false);
   }
 }

@@ -123,6 +123,8 @@ public final class Constants {
   public static final class OIConstants {
     public static final double kDriveDeadband = 0.02;
     public static final double kDriveSensitivity = 0.5; // The rest will be added by "boost"
+    public static final double kMaxBoost = 1.0;
+    public static final double kMinBoost = -0.7;
     public static final double kDriveMaxOutput = 1.0;
   }
 

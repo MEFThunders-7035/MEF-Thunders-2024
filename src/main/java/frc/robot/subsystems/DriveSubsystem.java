@@ -34,6 +34,8 @@ import frc.robot.simulationSystems.SwerveGyroSimulation;
 import frc.utils.ExtraFunctions;
 import frc.utils.SwerveUtils;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
 public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
   private final AHRS navX = new AHRS();
@@ -303,15 +305,65 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
         frontLeft.getState(), frontRight.getState(), rearLeft.getState(), rearRight.getState());
   }
 
+  /* ACTUALLY DRIVE RELATED CODE */
+
+  /**
+   * Method to drive the robot using the ChassisSpeeds object. Should most probably only be used in
+   * the path following system. and no where else. If not, you are probably doing something wrong
+   * and should use {@link #drive(double, double, double)} instead.
+   *
+   * @param speeds The ChassisSpeeds object to drive the robot with.
+   */
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    var swerveModuleStates = SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
+    frontLeft.setDesiredState(swerveModuleStates[0]);
+    frontRight.setDesiredState(swerveModuleStates[1]);
+    rearLeft.setDesiredState(swerveModuleStates[2]);
+    rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
+  /**
+   * Method to drive the robot in a field relative way
+   *
+   * @param xSpeed
+   * @param ySpeed
+   * @param rot
+   */
+  public void driveCommand(
+      DoubleSupplier xSpeed,
+      DoubleSupplier ySpeed,
+      DoubleSupplier rot,
+      BooleanSupplier fieldRelative,
+      BooleanSupplier rateLimit) {
+    this.runEnd(
+        () ->
+            drive(
+                xSpeed.getAsDouble(),
+                ySpeed.getAsDouble(),
+                rot.getAsDouble(),
+                fieldRelative.getAsBoolean(),
+                rateLimit.getAsBoolean()),
+        this::stop);
+  }
+
+  private void stop() {
+    drive(0, 0, 0, false, false);
+  }
+
   /**
    * Method to drive the robot using joystick info. Taken straight from REV MAXSwerve Template.
    *
+   * @deprecated Use {@link #driveCommand(double, double, double)} instead.
    * @param xSpeed Speed of the robot in the x direction (forward).
    * @param ySpeed Speed of the robot in the y direction (sideways).
    * @param rot Angular rate of the robot.
    * @param fieldRelative Whether the provided x and y speeds are relative to the field.
    * @param rateLimit Whether to enable rate limiting for smoother control.
    */
+  @Deprecated
   public void drive(
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     double xSpeedCommanded;
@@ -391,17 +443,18 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  public void driveRobotRelative(ChassisSpeeds speeds) {
-    var swerveModuleStates = SwerveModuleConstants.kDriveKinematics.toSwerveModuleStates(speeds);
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-
-    frontLeft.setDesiredState(swerveModuleStates[0]);
-    frontRight.setDesiredState(swerveModuleStates[1]);
-    rearLeft.setDesiredState(swerveModuleStates[2]);
-    rearRight.setDesiredState(swerveModuleStates[3]);
-  }
-
+  /**
+   * Same as {@link #drive(double, double, double, boolean, boolean)} but with fieldRelative and
+   * rate limit set to true for convenience.
+   *
+   * @deprecated Will turn private in the future as we switch to fully command based style
+   *     subsystems. Use {@link #driveCommand(DoubleSupplier, DoubleSupplier, DoubleSupplier,
+   *     BooleanSupplier, BooleanSupplier)} instead.
+   * @param xSpeed
+   * @param ySpeed
+   * @param rot
+   */
+  @Deprecated
   public void drive(double xSpeed, double ySpeed, double rot) {
     drive(xSpeed, ySpeed, rot, true, true);
   }

@@ -15,7 +15,8 @@ public class DefaultDriveCommand extends SequentialCommandGroup {
         driveSubsystem.run(
             () ->
                 driveSubsystem.driveWithExtras(
-                    controller.getLeftY(),
+                    -controller
+                        .getLeftY(), // this is inverted because logitech controller is inverted
                     -controller.getLeftX(), // ! THIS IS INVERTED BECAUSE +y IS LEFT of robot
                     -controller.getRightX(), // ! THIS IS INVERTED BECAUSE + IS COUNTERCLOCKWISE
                     getBoostByValue(controller))));

@@ -11,16 +11,31 @@ public class ArmIdleCommand extends SequentialCommandGroup {
     SmartDashboard.putNumber("Arm Pos", 0);
   }
 
+  private static double getArmSetpoint(ArmSubsystem armSubsystem, double axis) {
+    var data = SmartDashboard.getNumber("Arm Pos", 0);
+    if (Math.abs(axis) > 0.02) {
+      return axis;
+    }
+
+    if (data != 0) {
+      return data;
+    }
+
+    return 0;
+  }
+
   private static void toRun(ArmSubsystem armSubsystem, double axis) {
     var data = SmartDashboard.getNumber("Arm Pos", 0);
-    if (Math.abs(axis) < 0.02) {
-      if (data != 0) {
-        armSubsystem.setArmToPosition(data);
-        return;
-      }
-      armSubsystem.setArmSpeed(0);
+    if (Math.abs(axis) > 0.02) {
+      armSubsystem.setArmToPosition(axis);
       return;
     }
-    armSubsystem.setArmToPosition(axis);
+
+    if (data != 0) {
+      armSubsystem.setArmToPosition(data);
+      return;
+    }
+
+    armSubsystem.setArmToPosition(0);
   }
 }

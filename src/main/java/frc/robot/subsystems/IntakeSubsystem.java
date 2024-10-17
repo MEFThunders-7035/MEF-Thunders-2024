@@ -2,25 +2,27 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ColorSensorConstants;
 import frc.robot.commands.LoadToShooterCommand;
 import frc.robot.commands.VibrateControllerCommand;
+import frc.robot.commands.WaitANDConditionCommand;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 import frc.utils.sim_utils.ColorSensorV3Wrapped;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
 public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
   private final CANSparkMAXWrapped armIntake;
   private final CANSparkMAXWrapped groundIntake;
   private final ColorSensorV3Wrapped colorSensor;
-  private final Thread fastColorCheckThread;
   private boolean isForced = false;
 
   public IntakeSubsystem() {
@@ -30,16 +32,20 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     setupIntakeMotors();
     colorSensor = new ColorSensorV3Wrapped(ColorSensorConstants.kColorSensorPort);
 
-    fastColorCheckThread =
-        new Thread(
-            () -> {
-              while (true) {
-                fastPeriodic();
-              }
-            },
-            "Fast Color Check Loop");
-    fastColorCheckThread.setDaemon(true);
-    fastColorCheckThread.start();
+    new Trigger(this::hasNote)
+        .and(() -> isForced)
+        .onTrue(this.stop()); // Stop motors on note detection
+  }
+
+  @Override
+  public void periodic() {
+    SmartDashboard.putNumber("ColorSensor - Distance", colorSensor.getProximity());
+    SmartDashboard.putNumber("ColorSensor - Red", colorSensor.getRed());
+    SmartDashboard.putNumber("ColorSensor - Green", colorSensor.getGreen());
+    SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
+    SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
+    SmartDashboard.putBoolean("Note Detected", hasNote());
+    // don't check for a note here cause it breaks the unit tests SOMEHOW!
   }
 
   private void setupIntakeMotors() {
@@ -60,7 +66,6 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
 
   @Override
   public void close() {
-    fastColorCheckThread.interrupt();
     armIntake.close();
     groundIntake.close();
     colorSensor.close();
@@ -90,6 +95,56 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     return armIntake.get();
   }
 
+  public Command stop() {
+    return this.runOnce(this::stopMotors);
+  }
+
+  public Command run() {
+    return this.runIntake(
+        IntakeConstants.kArmIntakeRunSpeed, IntakeConstants.kGroundIntakeRunSpeed, false);
+  }
+
+  /**
+   * Pushes the ball to the shooter. Warning: This command will obviously not check if the ball is
+   * in the intake.
+   *
+   * @return
+   */
+  public Command loadToShooter() {
+    return this.runIntake(IntakeConstants.kPushToShooterSpeed, 0, true)
+        .deadlineWith(
+            new WaitANDConditionCommand(0.5, () -> !hasNote())); // Stop when we have a note.
+  }
+
+  @SuppressWarnings("removal")
+  public Command runIntake(
+      DoubleSupplier armSpeed, DoubleSupplier groundSpeed, BooleanSupplier force) {
+    return this.runEnd(
+        () ->
+            setIntakeSpeed(armSpeed.getAsDouble(), groundSpeed.getAsDouble(), force.getAsBoolean()),
+        this::stopMotors);
+  }
+
+  public Command runIntake(double armSpeed, double groundSpeed, boolean force) {
+    return runIntake(() -> armSpeed, () -> groundSpeed, () -> force);
+  }
+
+  public Command loadToShooterCommand() {
+    return new LoadToShooterCommand(this);
+  }
+
+  public Command vibrateControllerOnNoteCommand(XboxController controller) {
+    return new VibrateControllerCommand(controller, 2, 1, 0.2)
+        .alongWith(new PrintCommand("Note!"))
+        .beforeStarting(new WaitUntilCommand(this::hasNote));
+  }
+
+  public void stopMotors() {
+    armIntake.stopMotor();
+    groundIntake.stopMotor();
+  }
+
+  @Deprecated(forRemoval = true)
   public void setIntakeSpeed(double armSpeed, double groundSpeed, boolean force) {
     if (armSpeed > 0 && hasNote() && !force) { // If we are intaking, check if we have a note.
       armIntake.set(0);
@@ -107,48 +162,13 @@ public class IntakeSubsystem extends SubsystemBase implements AutoCloseable {
     groundIntake.set(groundSpeed);
   }
 
+  @Deprecated(forRemoval = true)
   public void setIntakeSpeed(double speed, boolean force) {
     setIntakeSpeed(speed, speed, force);
   }
 
+  @Deprecated(forRemoval = true)
   public void setIntakeSpeed(double speed) {
     setIntakeSpeed(speed, false);
-  }
-
-  public void stopMotors() {
-    armIntake.stopMotor();
-    groundIntake.stopMotor();
-  }
-
-  public void checkIfHasNote() {
-    if (hasNote() && armIntake.get() > 0 && !isForced) {
-      setIntakeSpeed(0);
-    }
-  }
-
-  public Command loadToShooterCommand() {
-    return new LoadToShooterCommand(this);
-  }
-
-  public Command vibrateControllerOnNoteCommand(XboxController controller) {
-    return new VibrateControllerCommand(controller, 2, 1, 0.2)
-        .alongWith(new PrintCommand("Note!"))
-        .beforeStarting(new WaitUntilCommand(this::hasNote));
-  }
-
-  @Override
-  public void periodic() {
-    SmartDashboard.putNumber("ColorSensor - Distance", colorSensor.getProximity());
-    SmartDashboard.putNumber("ColorSensor - Red", colorSensor.getRed());
-    SmartDashboard.putNumber("ColorSensor - Green", colorSensor.getGreen());
-    SmartDashboard.putNumber("ColorSensor - Blue", colorSensor.getBlue());
-    SmartDashboard.putNumber("ColorSensor - IR", colorSensor.getIR());
-    SmartDashboard.putBoolean("Note Detected", hasNote());
-    // don't check for a note here cause it breaks the unit tests SOMEHOW!
-  }
-
-  private void fastPeriodic() {
-    checkIfHasNote();
-    Timer.delay(0.005);
   }
 }

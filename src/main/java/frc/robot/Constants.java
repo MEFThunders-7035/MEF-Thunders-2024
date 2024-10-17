@@ -127,6 +127,12 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
+    public static final double kIntakeSpeed = 1;
+    public static final double kGroundIntakeRunSpeed = kIntakeSpeed; // used while intaking
+    public static final double kArmIntakeRunSpeed = kIntakeSpeed; // only while intaking
+    public static final double kPushToShooterSpeed =
+        kIntakeSpeed; // only while pushing to shooter, which uses arm only
+
     public static final int kArmIntakeMotorCanID = 9;
     public static final int kGroundIntakeMotorCanID = 13;
     public static final int kArmMotorCanID = 10;
@@ -143,8 +149,6 @@ public final class Constants {
     public static final double kArmEncoderGearAmount = 1; // Directly Connected
     public static final double kArmEncoderPositionFactor = 1 / (kArmEncoderGearAmount);
     public static final int kSmartCurrentLimit = 40;
-
-    public static final double kIntakeSpeed = 1;
 
     public static final class ArmPIDConstants {
       public static final double kP = 3; // 3

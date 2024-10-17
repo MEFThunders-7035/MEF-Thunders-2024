@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.ArmPIDConstants;
-import frc.robot.commands.MoveArmToPositionCommand;
 import frc.utils.ExtraFunctions;
 import frc.utils.sim_utils.CANSparkMAXWrapped;
 
@@ -29,6 +28,12 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   private static final double kArmParallelDifference = 0.00339;
 
   private double desiredPosition = 0;
+
+  enum ArmState {
+    TOP,
+    BOTTOM,
+    IDLE
+  }
 
   public ArmSubsystem() {
     arm = new CANSparkMAXWrapped(IntakeConstants.kArmMotorCanID, MotorType.kBrushed);
@@ -68,34 +73,34 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
   }
 
   @Override
+  public void periodic() {
+    SmartDashboard.putNumber("Arm Encoder Position", encoder.getPosition());
+  }
+
+  @Override
   public void close() {
     arm.close();
     armFollower.close();
   }
 
   /**
-   * Sets the arm to a position. This is a wrapper for the Spark Max's set method.
+   * Checks if the arm is at a given position within a certain error. see {@link
+   * ArmPIDConstants#kAllowedError} for the allowed error.
    *
-   * @apiNote YOU SHOULD NOT USE THIS METHOD UNLESS NECESSARY! USE THE PID CONTROLLER INSTEAD.
+   * @param position The position to check if the arm is at.
+   * @return true if the arm is at the desired position.
    */
-  public void setArmSpeed(double speed) {
-    arm.set(speed);
-  }
-
-  /**
-   * Sets the arm to a position. This is a wrapper for the Spark Max's set method.
-   *
-   * @apiNote YOU SHOULD NOT USE THIS METHOD UNLESS NECESSARY! USE THE PID CONTROLLER INSTEAD.
-   */
-  public void stopArm() {
-    arm.set(0);
-  }
-
   public boolean isArmAtPosition(double position) {
     position = MathUtil.clamp(position, 0, 0.5);
     return Math.abs(encoder.getPosition() - position) < ArmPIDConstants.kAllowedError;
   }
 
+  /**
+   * Checks if the arm is at the last set desired position within a certain error. see {@link
+   * ArmPIDConstants#kAllowedError} for the allowed error.
+   *
+   * @return true if the arm is at the desired position.
+   */
   public boolean isArmAtPosition() {
     return isArmAtPosition(desiredPosition);
   }
@@ -104,57 +109,99 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     return desiredPosition;
   }
 
+  /**
+   * Sets the current position of the arm as the starting position. This is useful for when the arm
+   * is at rest like when starting the robot, and we wish to calibrate the arm encoder.
+   *
+   * <p>Warning: Use with caution and only call this while the arm is at rest! or this will cause
+   * all sorts of problems.
+   */
   public void resetEncoder() {
-    encoder.setPosition(0);
+    resetEncoder(0);
   }
 
+  /**
+   * Sets the current position of the arm as the starting position. This is useful if there is a
+   * limit switch at a known position and we wish to calibrate the arm encoder to that position.
+   *
+   * @param position the position of the arm in rotations. (from 0 to 1 for half a rotation ie 180
+   *     deg) and since the arm can only go until 90 deg, we will only use 0 to 0.5, do not set as
+   *     anything else.
+   */
   public void resetEncoder(double position) {
     encoder.setPosition(position);
   }
 
+  public Command stop() {
+    return this.runOnce(this::stopArm);
+  }
+
+  public Command set(ArmState state) {
+    switch (state) {
+      case TOP:
+        return setArmToTop();
+      case BOTTOM:
+        return setArmToBottom();
+      case IDLE:
+        return stop();
+      default:
+        return stop();
+    }
+  }
+
+  public Command setArmToTop() {
+    return set(0.5);
+  }
+
+  public Command setArmToBottom() {
+    return set(0.0);
+  }
+
+  public Command set(double position) {
+    return this.runEnd(() -> setArmToPosition(position), this::stopArm)
+        .until(this::isArmAtPosition);
+  }
+
+  @Deprecated(forRemoval = true)
+  public void stopArm() {
+    arm.stopMotor();
+  }
+
   /**
-   * Sets the arm to a given position.
+   * Calculates the feedforward for the arm. Since the arm is slightly down when its at "0" we
+   * compensate for that in the calculation by subtracting {@link #kArmParallelDifference} from the
+   * position.
    *
-   * @param position The rotation the arm should be at. (from 0 to 1)
-   * @see #setArmToPosition(int)
+   * @param position The position to calculate the feedforward for.
+   * @return The calculated feedforward.
    */
-  public void setArmToPosition(double position) {
-    // the hand is slightly down, which means the 0 value is
-    // actually "kArmParallelDifference" down so we compensate for that in the calculation
-    position = MathUtil.clamp(position, 0, 0.5);
-    desiredPosition = position;
+  private double calculateFeedForward(double position) {
     var calculation =
         feedforward.calculate(
             (position - kArmParallelDifference) * Math.PI,
             Math.abs(encoder.getPosition() - position));
+
     SmartDashboard.putNumber("FeedForward Calculation", calculation);
     SmartDashboard.putNumber("Setpoint", position);
+
+    return calculation;
+  }
+
+  /**
+   * Sets the arm to a given position.
+   *
+   * @deprecated To switch to command based subsystem style, use {@link #set(double)} instead.
+   * @param position The rotation the arm should be at. (from 0 to 1)
+   * @see #setArmToPosition(int)
+   */
+  @Deprecated(forRemoval = true)
+  public void setArmToPosition(double position) {
+    position = MathUtil.clamp(position, 0, 0.5);
+    desiredPosition = position;
+
+    double feedForwardCalculation = calculateFeedForward(position);
     pidController.setReference(
-        position, ControlType.kPosition, 0, calculation, ArbFFUnits.kVoltage);
-  }
-
-  /**
-   * Sets the arm to a given position.
-   *
-   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
-   * @see #setArmToPosition(double)
-   */
-  public void setArmToPosition(int positionDegrees) {
-    setArmToPosition(positionDegrees / 360.0);
-  }
-
-  public Command setArmToPositionCommand(double position) {
-    return new MoveArmToPositionCommand(this, position);
-  }
-
-  /**
-   * Sets the arm to a given position.
-   *
-   * @param positionDegrees The rotation the arm should be at. (from 0 to 360)
-   * @return A command that will set the arm to the given position.
-   */
-  public Command setArmToPositionCommand(int positionDegrees) {
-    return this.setArmToPositionCommand(positionDegrees / 180.0);
+        position, ControlType.kPosition, 0, feedForwardCalculation, ArbFFUnits.kVoltage);
   }
 
   public void setArmToAprilTag() {
@@ -173,10 +220,5 @@ public class ArmSubsystem extends SubsystemBase implements AutoCloseable {
     double armAngle = ExtraFunctions.mapValue(distance, 0, 100, 0.2, 0.05); // between 10 and 20 deg
 
     setArmToPosition(armAngle);
-  }
-
-  @Override
-  public void periodic() {
-    SmartDashboard.putNumber("Arm Encoder Position", encoder.getPosition());
   }
 }

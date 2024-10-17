@@ -9,12 +9,12 @@ import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
 public class DriveCommands {
-  public static Command getControllerDriveCommand(
+  public static Command driveWithController(
       DriveSubsystem driveSubsystem, XboxController controller) {
-    return driveSubsystem.driveCommand(
+    return driveSubsystem.drive(
         () ->
             addBoost(
-                controller.getLeftY(),
+                controller.getLeftY(), // TODO: invert this
                 getBoostByValue(
                     controller)), // this is inverted because logitech controller is inverted
         () ->
@@ -31,10 +31,10 @@ public class DriveCommands {
   public static Command driveFacingShooter(
       DriveSubsystem driveSubsystem, XboxController controller) {
     var rotController = getPIDController();
-    return driveSubsystem.driveCommand(
+    return driveSubsystem.drive(
         () ->
             addBoost(
-                controller.getLeftY(),
+                controller.getLeftY(), // TODO: invert this
                 getBoostByValue(
                     controller)), // this is inverted because logitech controller is inverted
         () ->

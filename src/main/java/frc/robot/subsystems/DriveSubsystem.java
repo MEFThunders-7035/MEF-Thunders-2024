@@ -324,14 +324,21 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
+  /** Sets the wheels into an X formation to prevent movement. */
+  public void setX() {
+    this.runOnce(this::setModulesToXFormation);
+  }
+
   /**
    * Method to drive the robot in a field relative way
    *
-   * @param xSpeed
-   * @param ySpeed
-   * @param rot
+   * @param xSpeed Speed of the robot in the x direction (forward). + is forward
+   * @param ySpeed Speed of the robot in the y direction (sideways). + is left of robot see wpilib
+   *     coordinate system for more info
+   *     (https://docs.wpilib.org/tr/stable/docs/software/basic-programming/coordinate-system.html)
+   * @param rot the rotation of the robot. + is counterclockwise again see wpilib coordinate system
    */
-  public Command driveCommand(
+  public Command drive(
       DoubleSupplier xSpeed,
       DoubleSupplier ySpeed,
       DoubleSupplier rot,
@@ -339,30 +346,34 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
       BooleanSupplier rateLimit) {
     return this.runEnd(
         () ->
-            drive(
+            driveRobot(
                 xSpeed.getAsDouble(),
                 ySpeed.getAsDouble(),
                 rot.getAsDouble(),
                 fieldRelative.getAsBoolean(),
                 rateLimit.getAsBoolean()),
-        this::stop);
+        this::stopRobot);
   }
 
-  public Command driveCommand(
+  public Command drive(
       DoubleSupplier xSpeed,
       DoubleSupplier ySpeed,
       DoubleSupplier rot,
       boolean fieldRelative,
       boolean rateLimit) {
-    return driveCommand(xSpeed, ySpeed, rot, () -> fieldRelative, () -> rateLimit);
+    return drive(xSpeed, ySpeed, rot, () -> fieldRelative, () -> rateLimit);
   }
 
-  public Command driveCommand(DoubleSupplier xSpeed, DoubleSupplier ySpeed, DoubleSupplier rot) {
-    return driveCommand(xSpeed, ySpeed, rot, true, true);
+  public Command drive(DoubleSupplier xSpeed, DoubleSupplier ySpeed, DoubleSupplier rot) {
+    return drive(xSpeed, ySpeed, rot, true, true);
   }
 
-  private void stop() {
-    drive(0, 0, 0, false, false);
+  public Command stop() {
+    return this.runOnce(this::stop);
+  }
+
+  private void stopRobot() {
+    driveRobot(0, 0, 0, false, false);
   }
 
   /**
@@ -374,7 +385,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
    * @param fieldRelative Whether the provided x and y speeds are relative to the field.
    * @param rateLimit Whether to enable rate limiting for smoother control.
    */
-  private void drive(
+  private void driveRobot(
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     double xSpeedCommanded;
     double ySpeedCommanded;
@@ -448,9 +459,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
     setModuleStates(swerveModuleStates);
   }
 
-  /** Sets the wheels into an X formation to prevent movement. */
-  @Deprecated(forRemoval = true)
-  public void setX() {
+  private void setModulesToXFormation() {
     frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
     frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));

@@ -18,15 +18,15 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.commands.ArmIdleCommand;
 import frc.robot.commands.BasicIntakeCommand;
-import frc.robot.commands.DefaultDriveCommand;
+import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ShootToAmpCommand;
 import frc.robot.commands.ShootToSpeakerCommand;
 import frc.robot.commands.SmartIntakeCommand;
 import frc.robot.commands.led_commands.LEDIdleCommand;
 import frc.robot.simulationSystems.PhotonSim;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ArmSubsystem.ArmState;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
@@ -113,20 +113,14 @@ public class RobotContainer {
   }
 
   private void setDefaultCommands() {
-    driveSubsystem.setDefaultCommand(new DefaultDriveCommand(driveSubsystem, controller));
+    driveSubsystem.setDefaultCommand(DriveCommands.driveWithController(driveSubsystem, controller));
 
     // move arm with midi's potentiometer
-    armSubsystem.setDefaultCommand(
-        new ArmIdleCommand(armSubsystem, () -> midiController.getRawAxis(0)));
+    armSubsystem.setDefaultCommand(armSubsystem.set(ArmState.IDLE));
 
-    intakeSubsystem.setDefaultCommand(
-        new RunCommand(
-            () -> intakeSubsystem.setIntakeSpeed(midiController.getRawAxis(1)), intakeSubsystem));
+    intakeSubsystem.setDefaultCommand(intakeSubsystem.stop());
 
-    shooterSubsystem.setDefaultCommand(
-        new RunCommand(
-            () -> shooterSubsystem.setShooterSpeed(midiController.getRawAxis(2)),
-            shooterSubsystem));
+    shooterSubsystem.setDefaultCommand(shooterSubsystem.stop());
 
     ledSubsystem.setDefaultCommand(
         new LEDIdleCommand(ledSubsystem, intakeSubsystem).ignoringDisable(true));
@@ -142,12 +136,7 @@ public class RobotContainer {
     new JoystickButton(controller, Button.kY.value) // Shoot, smart (Fully Shoot)
         .whileTrue(
             new ShootToSpeakerCommand(
-                shooterSubsystem,
-                intakeSubsystem,
-                armSubsystem,
-                driveSubsystem,
-                controller::getLeftY,
-                controller::getLeftX));
+                shooterSubsystem, intakeSubsystem, armSubsystem, driveSubsystem, controller));
 
     new JoystickButton(controller, Button.kX.value)
         .whileTrue(new ShootToAmpCommand(shooterSubsystem, intakeSubsystem, armSubsystem));
